@@ -1,0 +1,16 @@
+
+Assignment 7: Create a script that takes a text file and replaces all occurrences of "old_text" with "new_text". Use sed to perform this operation and output the result to a new file.
+
+Solution :
+
+input_file="$1"
+output_file="$2"
+
+if [ ! -f "$input_file" ]; then
+    echo "Input file not found"
+    exit 1
+fi
+
+sed 's/old_text/new_text/g' "$input_file" > "$output_file"
+
+echo "Replacement completed. Output saved in $output_file"

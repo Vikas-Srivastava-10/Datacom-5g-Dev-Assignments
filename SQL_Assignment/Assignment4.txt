@@ -1,0 +1,69 @@
+Assignment 4 : Write SQL statements to CREATE a new database and tables that reflect the library schema you designed earlier. Use ALTER statements to modify the table structures and DROP statements to remove a redundant table.
+
+Solution : Step 1. Create a Database - 
+
+create database library_db;
+
+Step 2. Use the database - 
+
+use library_db;
+
+Step 3. Create Tables -
+
+1. Author Table : 
+
+CREATE TABLE author (
+    author_id INT PRIMARY KEY,
+    author_name VARCHAR(50) NOT NULL,
+    email VARCHAR(60) UNIQUE
+);
+
+2. Category Table _
+
+CREATE TABLE category (
+    category_id INT PRIMARY KEY,
+    category_name VARCHAR(30) NOT NULL UNIQUE
+);
+
+3. Book Table -
+
+CREATE TABLE book (
+    book_id INT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    author_id INT NOT NULL,
+    category_id INT NOT NULL,
+    price DECIMAL(6,2) CHECK (price > 0),
+    available_copies INT CHECK (available_copies >= 0),
+
+    FOREIGN KEY (author_id) REFERENCES author(author_id),
+    FOREIGN KEY (category_id) REFERENCES category(category_id)
+);
+
+4.. Member Table -
+
+ CREATE TABLE member (
+    member_id INT PRIMARY KEY,
+    member_name VARCHAR(50) NOT NULL,
+    phone VARCHAR(10) UNIQUE NOT NULL
+);
+
+Step 4. Modify Column Size -
+
+alter table book
+modify title varchar(50);
+
+Step 5.. To drop the redundant 
+
+1. create a sample table -
+
+create table book_lib (
+book_id int,
+title varchar(100)
+);
+
+This table is not needed because book data already exist in book, so we will drop this.
+
+2. Drop this table -
+
+drop table book_lib;
+

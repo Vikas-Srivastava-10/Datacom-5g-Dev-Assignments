@@ -1,0 +1,17 @@
+Assignment 6: Given a sample log file, write a script using grep to extract all lines containing "ERROR". Use awk to print the date, time, and error message of each extracted line.
+Data Processing with sed
+
+Solution :
+
+
+LOGFILE="app.log"
+
+# Check if log file exists
+if [ ! -f "$LOGFILE" ]; then
+    echo "Log file not found"
+    exit 1
+fi
+
+# Extract ERROR lines and process
+grep "ERROR" "$LOGFILE" | awk '{print $1, $2, $4, $5, $6, $7}'
+ 
