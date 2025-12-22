@@ -1,16 +1,9 @@
 while true
-do
-        echo " enter a number and zero to stop the loop"
-        read num
-        if [ $num -eq 0 ]
-        then
-                echo "Program Stopped"
-                break
-
-        elif [ $((num%2)) -eq 0 ]
-        then
-                echo "number is even"
-        else
-                echo "number is odd"
-        fi
-done
+num = int(input("Enter a number (0 to stop) : "))
+if num == 0;
+	print("Existing the program.")
+	break
+	if num%2 == 0:
+		print(f"{num} is even.")
+	else:
+		print(f"{num} is ordd.")
