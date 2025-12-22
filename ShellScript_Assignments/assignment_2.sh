@@ -1,9 +1,18 @@
-while true
-num = int(input("Enter a number (0 to stop) : "))
-if num == 0;
-	print("Existing the program.")
-	break
-	if num%2 == 0:
-		print(f"{num} is even.")
-	else:
-		print(f"{num} is ordd.")
+
+while true; do
+    
+    read -p "Enter a number (or 0 to stop): " num
+
+    if [ "$num" -eq 0 ]; then
+        echo "Exiting the program."
+        break
+    fi
+        
+        if [ $((num % 2)) -eq 0 ]; then
+            echo "$num is even."
+        else
+            echo "$num is odd."
+        fi
+    
+done
+

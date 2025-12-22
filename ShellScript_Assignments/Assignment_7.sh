@@ -1,14 +1,18 @@
 
+input_file="Assignment_7.txt"
+old_text="apple"
+new_text="orange"
 
-input_file="$Assignment_1.txt"
-output_file="$Assignment_2.txt"
-
-if [ ! -f "$Assignment_1.txt" ]; then
-    echo "Input file not found"
+if [ ! -f "$input_file" ]; then
+    echo "Error: File '$input_file' does not exist."
     exit 1
 fi
 
-sed 's/old_text/new_text/g' "$Assignment_1.txt" > "$Assignment_2.txt"
+output_file="${input_file%.txt}_modified.txt"
 
-echo "Replacement completed. Output saved in $Assignment_2.txt"
+sed "s/$old_text/$new_text/g" "$input_file" > "$output_file"
+
+echo "Replaced all occurrences of '$old_text' with '$new_text' in '$input_file'."
+echo "The result has been saved to '$output_file'."
+
 

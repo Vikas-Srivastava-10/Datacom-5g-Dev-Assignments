@@ -1,55 +1,33 @@
-#!/bin/bash
 
-# -------- DEBUG MODE --------
-DEBUG=false
+DEBUG=FALSE
+# Enable debug 
 if [ "$1" = "-d" ]; then
     DEBUG=true
-    echo "[DEBUG] Debug mode enabled"
+    set -x  
+else
+    DEBUG=false
 fi
-
-log_debug() {
-    if $DEBUG; then
-        echo "[DEBUG] $1"
-    fi
-}
 
 DIR="TestDir"
 
-# -------- DIRECTORY CHECK --------
+# Checking if directory exists
 if [ -d "$DIR" ]; then
-    echo "Directory '$DIR' already exists."
-    log_debug "Using existing directory: $DIR"
+    echo "Directory '$DIR' already exists"
 else
-    mkdir "$DIR" 2>/dev/null
-    if [ $? -ne 0 ]; then
-        echo "Error: Cannot create directory '$DIR'. Permission denied."
-        exit 1
-    fi
-    log_debug "Directory '$DIR' created."
+    mkdir "$DIR" || { echo "Error: Permission denied to create directory"; exit 1; }
 fi
 
-# -------- PERMISSION CHECK --------
-if [ ! -w "$DIR" ]; then
-    echo "Error: No write permission in '$DIR'."
-    exit 1
-fi
-
-cd "$DIR" || exit 1
-log_debug "Changed directory to $(pwd)"
-
-# -------- FILE CREATION --------
-for i in {1..10}
-do
-    filename="File$i.txt"
-    echo "$filename" > "$filename" 2>/dev/null
-
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to create $filename"
-        exit 1
-    fi
-
-    log_debug "Created $filename"
+# Creating 10 files
+i=1
+while [ $i -le 10 ]; do
+    FILE="$DIR/File$i.txt"
+    echo "File$i.txt" > "$FILE" || echo "Error creating $FILE"
+    i=$((i+1))
 done
 
-echo "Files created successfully."
+# Debug message
+if [ "$DEBUG" = true ]; then
+    echo "Debug mode enabled"
+fi
+
 

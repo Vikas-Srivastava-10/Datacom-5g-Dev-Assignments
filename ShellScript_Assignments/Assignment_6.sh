@@ -1,13 +1,15 @@
-#!/bin/bash
 
-LOGFILE="app.log"
+logfile="Assignment_6.txt"
 
-# Check if log file exists
-if [ ! -f "$LOGFILE" ]; then
-    echo "Log file not found"
+
+if [ ! -f "$logfile" ]; then
+    echo "Error: The log file '$logfile' does not exist."
     exit 1
 fi
 
-# Extract ERROR lines and process
-grep "ERROR" "$Assigment_1.txt" | awk '{print $1, $2, $4, $5, $6, $7}'
+grep "ERROR" "$logfile" | \
+awk '{print $1, $2, substr($0, index($0,$3))}' | \
+sed 's/^\([0-9\-]* [0-9:]*\) \(ERROR.*\)$/\1 - \2/' 
+
+
 
