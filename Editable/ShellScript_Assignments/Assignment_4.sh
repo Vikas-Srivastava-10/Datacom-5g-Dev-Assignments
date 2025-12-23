@@ -1,0 +1,7 @@
+mkdir -p TestDir
+cd TestDir || exit
+
+for i in {1..10}
+do
+    echo "File$i.txt" > "File$i.txt"
+done
