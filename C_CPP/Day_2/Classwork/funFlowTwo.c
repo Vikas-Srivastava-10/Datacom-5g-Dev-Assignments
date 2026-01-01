@@ -1,17 +1,13 @@
-
 #include <stdio.h>
-
 void fun();
 void funOne();
 void funTwo();
 void funThree();
-
 int main(){
 	printf("1.  in main()...\n");
 	fun();
 	printf("2.  in main()...\n");
 }
-
 void fun(){
 	printf("1. Inside fun()...\n");
 	funOne();

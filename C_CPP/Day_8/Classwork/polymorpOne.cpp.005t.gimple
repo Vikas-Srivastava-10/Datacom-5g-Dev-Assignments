@@ -1,0 +1,57 @@
+main ()
+{
+  int D.40061;
+
+  {
+    struct Base * bPtr;
+    struct Base bObj;
+    struct Derived dObj;
+
+    try
+      {
+        bPtr = &bObj;
+        Base::disp (bPtr); //which is called
+        bPtr = &dObj;
+        Base::disp (bPtr); //which is called
+      }
+    finally
+      {
+        bObj = {CLOBBER};
+        dObj = {CLOBBER};
+      }
+  }
+  D.40061 = 0;
+  return D.40061;
+}
+
+
+Base::disp (struct Base * const this)
+{
+  _1 = std::operator<< <std::char_traits<char> > (&cout, "Base::disp()");
+  std::basic_ostream<char>::operator<< (_1, endl);
+}
+
+
+__static_initialization_and_destruction_0 (int __initialize_p, int __priority)
+{
+  if (__initialize_p == 1) goto <D.40066>; else goto <D.40067>;
+  <D.40066>:
+  if (__priority == 65535) goto <D.40068>; else goto <D.40069>;
+  <D.40068>:
+  std::ios_base::Init::Init (&__ioinit);
+  __cxa_atexit (__dt_comp , &__ioinit, &__dso_handle);
+  goto <D.40070>;
+  <D.40069>:
+  <D.40070>:
+  goto <D.40071>;
+  <D.40067>:
+  <D.40071>:
+}
+
+
+_GLOBAL__sub_I_main ()
+{
+  __static_initialization_and_destruction_0 (1, 65535);
+}
+
+

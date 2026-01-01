@@ -1,3 +1,5 @@
+//check Bit on And Off
+
 #include <stdio.h>
 
 int main(){

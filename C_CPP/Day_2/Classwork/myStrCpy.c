@@ -11,11 +11,9 @@ int main(){
 
 	printf("Copied: %s\t\tLen: %lu\n", strCopy, strlen(strCopy));
 }
-
 char *myStrCpy(char *dest, const char *src){
 	int cnt = 0;
 	while(dest[cnt] = src[cnt])
 		cnt++;	
-
 	return dest;
 }

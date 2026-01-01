@@ -1,0 +1,72 @@
+main ()
+{
+  int D.40085;
+
+  {
+    struct Base * bPtr;
+    struct Base bObj;
+    struct Derived dObj;
+
+    try
+      {
+        _1 = &_ZTV4Base + 16;
+        bObj._vptr.Base = _1;
+        _2 = &_ZTV7Derived + 16;
+        dObj.D.36378._vptr.Base = _2;
+        bPtr = &bObj;
+        _3 = bPtr->_vptr.Base;
+        _4 = *_3;
+        OBJ_TYPE_REF(_4;(struct Base)bPtr->0) (bPtr);
+        bPtr = &dObj.D.36378;
+        _5 = bPtr->_vptr.Base;
+        _6 = *_5;
+        OBJ_TYPE_REF(_6;(struct Base)bPtr->0) (bPtr);
+      }
+    finally
+      {
+        bObj = {CLOBBER};
+        dObj = {CLOBBER};
+      }
+  }
+  D.40085 = 0;
+  return D.40085;
+}
+
+
+Derived::disp (struct Derived * const this)
+{
+  _1 = std::operator<< <std::char_traits<char> > (&cout, "Derived::disp()");
+  std::basic_ostream<char>::operator<< (_1, endl);
+}
+
+
+Base::disp (struct Base * const this)
+{
+  _1 = std::operator<< <std::char_traits<char> > (&cout, "Base::disp()");
+  std::basic_ostream<char>::operator<< (_1, endl);
+}
+
+
+__static_initialization_and_destruction_0 (int __initialize_p, int __priority)
+{
+  if (__initialize_p == 1) goto <D.40091>; else goto <D.40092>;
+  <D.40091>:
+  if (__priority == 65535) goto <D.40093>; else goto <D.40094>;
+  <D.40093>:
+  std::ios_base::Init::Init (&__ioinit);
+  __cxa_atexit (__dt_comp , &__ioinit, &__dso_handle);
+  goto <D.40095>;
+  <D.40094>:
+  <D.40095>:
+  goto <D.40096>;
+  <D.40092>:
+  <D.40096>:
+}
+
+
+_GLOBAL__sub_I_main ()
+{
+  __static_initialization_and_destruction_0 (1, 65535);
+}
+
+

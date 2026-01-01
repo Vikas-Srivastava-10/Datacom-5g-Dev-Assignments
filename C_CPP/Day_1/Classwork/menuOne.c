@@ -3,7 +3,7 @@
 int main(){
 	int choice;
 	do {
-		printf("Enter the choice: 1 Edge/2 Python/3 Java/else quit");
+		printf("Enter the choice: ");
 		scanf("%d", &choice);
 		switch(choice){
 			case 1:
