@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive AMF Architecture - 5G Core</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --ue-color: #3498db;
+            --ran-color: #2ecc71;
+            --amf-color: #e74c3c;
+            --smf-color: #f1c40f;
+            --udm-color: #9b59b6;
+            --ausf-color: #1abc9c;
+            --pcf-color: #e67e22;
+            --wire-color: #7f8c8d;
+            --signal-color: #ff3f34;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            position: relative;
+            width: 1000px;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 40px;
+            border: 2px solid #ddd;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 14px;
+            color: rgba(0,0,0,0.3);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        h1 { color: #2c3e50; margin-bottom: 10px; }
+
+        /* Architecture Blocks */
+        .block {
+            position: absolute;
+            width: 140px;
+            height: 90px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 10;
+            text-align: center;
+            font-weight: bold;
+            padding: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .block i { font-size: 24px; margin-bottom: 5px; }
+
+        .block:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Block Positioning */
+        #ue   { top: 250px; left: 50px; background-color: var(--ue-color); }
+        #ran  { top: 250px; left: 250px; background-color: var(--ran-color); }
+        #amf  { top: 250px; left: 500px; background-color: var(--amf-color); width: 180px; height: 120px; font-size: 1.1em; }
+        #smf  { top: 100px; left: 520px; background-color: var(--smf-color); color: #333; }
+        #udm  { top: 100px; left: 750px; background-color: var(--udm-color); }
+        #ausf { top: 250px; left: 800px; background-color: var(--ausf-color); }
+        #pcf  { top: 400px; left: 520px; background-color: var(--pcf-color); }
+
+        /* Tooltip Theory */
+        .theory-popup {
+            position: absolute;
+            bottom: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 250px;
+            background: #333;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: normal;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 20;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
+        .block:hover .theory-popup {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(-160px);
+        }
+
+        /* SVG Connections (Wires) */
+        .wires-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        path {
+            fill: none;
+            stroke: var(--wire-color);
+            stroke-width: 3;
+            stroke-linecap: round;
+        }
+
+        /* Signal Animation */
+        .signal {
+            stroke: var(--signal-color);
+            stroke-width: 4;
+            stroke-dasharray: 10, 20;
+            animation: flow 0.5s linear infinite;
+            display: none;
+        }
+
+        .block:hover ~ .wires-layer .signal {
+            display: block;
+        }
+
+        @keyframes flow {
+            from { stroke-dashoffset: 30; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Theory Content Section */
+        .content-section {
+            width: 1000px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            line-height: 1.6;
+            color: #444;
+        }
+
+        .content-section h2 { color: var(--amf-color); border-bottom: 2px solid var(--amf-color); padding-bottom: 5px; }
+        .content-section b { color: #2c3e50; }
+        
+        .interface-label {
+            font-size: 12px;
+            font-weight: bold;
+            fill: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>5G AMF Architecture Visualization</h1>
+
+    <div class="container">
+        <!-- UE -->
+        <div class="block" id="ue">
+            <i class="fas fa-mobile-alt"></i>
+            UE
+            <div class="theory-popup">
+                <b>User Equipment (UE):</b> The mobile device (phone/IoT). It initiates registration via the N1 interface using NAS protocols.
+            </div>
+        </div>
+
+        <!-- RAN -->
+        <div class="block" id="ran">
+            <i class="fas fa-broadcast-tower"></i>
+            NG-RAN
+            <div class="theory-popup">
+                <b>Radio Access Network:</b> The gNodeB/base station. It acts as a bridge, forwarding NAS signals from UE to AMF via the N2 interface.
+            </div>
+        </div>
+
+        <!-- AMF -->
+        <div class="block" id="amf">
+            <i class="fas fa-server"></i>
+            AMF
+            <div class="theory-popup">
+                <b>AMF (Central Hub):</b> Handles Access and Mobility. Its core jobs are Authentication, Registration, and Mobility Management. It terminates the Control Plane.
+            </div>
+        </div>
+
+        <!-- SMF -->
+        <div class="block" id="smf">
+            <i class="fas fa-project-diagram"></i>
+            SMF
+            <div class="theory-popup">
+                <b>Session Management Function:</b> Manages PDU sessions. AMF sends session-related messages to SMF via N11.
+            </div>
+        </div>
+
+        <!-- UDM -->
+        <div class="block" id="udm">
+            <i class="fas fa-database"></i>
+            UDM
+            <div class="theory-popup">
+                <b>Unified Data Management:</b> The central database for user subscriptions. AMF retrieves profiles via the N8 interface.
+            </div>
+        </div>
+
+        <!-- AUSF -->
+        <div class="block" id="ausf">
+            <i class="fas fa-user-shield"></i>
+            AUSF
+            <div class="theory-popup">
+                <b>Authentication Server:</b> Performs the 5G AKA authentication. AMF talks to AUSF via N12 to verify the UE.
+            </div>
+        </div>
+
+        <!-- PCF -->
+        <div class="block" id="pcf">
+            <i class="fas fa-scroll"></i>
+            PCF
+            <div class="theory-popup">
+                <b>Policy Control Function:</b> Provides policy rules for mobility and access (e.g., roaming restrictions) to AMF via N15.
+            </div>
+        </div>
+
+        <!-- Wires and Signal Layer -->
+        <svg class="wires-layer">
+            <!-- Wires -->
+            <path d="M 190 295 L 250 295" id="path-n1" /> <!-- UE to RAN -->
+            <path d="M 390 295 L 500 295" id="path-n2" /> <!-- RAN to AMF -->
+            <path d="M 590 250 L 590 190" id="path-n11" /> <!-- AMF to SMF -->
+            <path d="M 680 295 L 800 295" id="path-n12" /> <!-- AMF to AUSF -->
+            <path d="M 620 145 L 750 145" id="path-n8-helper" style="stroke:none"/> <!-- Invisible helper -->
+            <path d="M 590 250 Q 650 200 750 145" id="path-n8" /> <!-- AMF to UDM (Curved) -->
+            <path d="M 590 370 L 590 400" id="path-n15" /> <!-- AMF to PCF -->
+
+            <!-- Signals (Animated dots/dashes) -->
+            <path d="M 190 295 L 250 295" class="signal" />
+            <path d="M 390 295 L 500 295" class="signal" />
+            <path d="M 590 250 L 590 190" class="signal" />
+            <path d="M 680 295 L 800 295" class="signal" />
+            <path d="M 590 250 Q 650 200 750 145" class="signal" />
+            <path d="M 590 370 L 590 400" class="signal" />
+
+            <!-- Interface Labels -->
+            <text x="200" y="285" class="interface-label">N1 (NAS)</text>
+            <text x="420" y="285" class="interface-label">N2</text>
+            <text x="600" y="220" class="interface-label">N11</text>
+            <text x="730" y="285" class="interface-label">N12</text>
+            <text x="680" y="210" class="interface-label">N8</text>
+            <text x="600" y="390" class="interface-label">N15</text>
+        </svg>
+
+        <div class="watermark">55984 - Vikas Srivastava</div>
+    </div>
+
+    <div class="content-section">
+        <h2>Architecture Theory: Access and Mobility Management Function (AMF)</h2>
+        <p>
+            The <b>Access and Mobility Management Function (AMF)</b> is the primary Control Plane component in the 5G Core (5GC) network. It acts as the single point of contact for the User Equipment (UE) for all non-session related interactions.
+        </p>
+        
+        <p><b>Key Internal Functions:</b></p>
+        <ul>
+            <li><b>Registration Management:</b> Handles UE registration, update, and de-registration. It ensures the device is authorized to use the network.</li>
+            <li><b>Connection Management:</b> Manages the signaling connection states between the UE and the core network (CM-IDLE and CM-CONNECTED).</li>
+            <li><b>Reachability Management:</b> Responsible for paging the UE when there is incoming data or signaling.</li>
+            <li><b>Mobility Management:</b> Tracks the UE's location and handles handovers between different gNodeBs (Access Points).</li>
+            <li><b>Security:</b> Terminates NAS (Non-Access Stratum) signaling, handles ciphering, and integrity protection to keep communication secure.</li>
+        </ul>
+
+        <p><b>Major Interfaces:</b></p>
+        <ul>
+            <li><b>N1:</b> Direct logical connection with the UE for Non-Access Stratum (NAS) signaling.</li>
+            <li><b>N2:</b> Connection with the Radio Access Network (NG-RAN) for transferring control information.</li>
+            <li><b>N8:</b> Interaction with UDM to fetch subscriber profiles and location data.</li>
+            <li><b>N11:</b> Communication with SMF to trigger session establishment or modification.</li>
+            <li><b>N12:</b> Interface to AUSF for performing device authentication procedures.</li>
+        </ul>
+    </div>
+
+    <script>
+        // Interactive interactivity logic
+        const blocks = document.querySelectorAll('.block');
+        blocks.forEach(block => {
+            block.addEventListener('mouseenter', () => {
+                // Signal is handled by CSS selector ~ .wires-layer .signal
+            });
+        });
+    </script>
+</body>
+</html>

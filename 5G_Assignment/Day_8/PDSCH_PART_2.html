@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G NR Physical Layer - Advanced</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Fira+Code:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d9ff;
+            --secondary: #0066ff;
+            --accent: #ff00ff;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff3366;
+            --dark-bg: #0a0e27;
+            --mid-bg: #151b3d;
+            --light-bg: #1f2847;
+            --text-primary: #e8f4f8;
+            --text-secondary: #8fa3bf;
+            --glow: 0 0 20px rgba(0, 217, 255, 0.5);
+            --glow-strong: 0 0 40px rgba(0, 217, 255, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #0d1128 50%, var(--dark-bg) 100%);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(0, 217, 255, 0.03) 50px, rgba(0, 217, 255, 0.03) 51px),
+                repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(0, 217, 255, 0.03) 50px, rgba(0, 217, 255, 0.03) 51px);
+            pointer-events: none;
+            z-index: 0;
+            animation: gridScroll 20s linear infinite;
+        }
+
+        @keyframes gridScroll {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        .subtitle {
+            font-family: 'Fira Code', monospace;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            font-family: 'Orbitron', sans-serif;
+            background: var(--mid-bg);
+            color: var(--text-secondary);
+            border: 2px solid transparent;
+            padding: 15px 35px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .tab-btn:hover::before {
+            left: 100%;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: var(--glow);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border-color: var(--primary);
+            box-shadow: var(--glow-strong);
+        }
+
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0 40px;
+        }
+
+        .mode-btn {
+            font-family: 'Fira Code', monospace;
+            background: var(--light-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--text-secondary);
+            padding: 10px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .mode-btn.active {
+            background: var(--success);
+            color: var(--dark-bg);
+            border-color: var(--success);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .module {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .module.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 1200px) {
+            .split-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(31, 40, 71, 0.7);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--glow);
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::before {
+            content: '▸';
+            color: var(--accent);
+            font-size: 1.8rem;
+        }
+
+        .svg-container {
+            background: rgba(10, 14, 39, 0.5);
+            padding: 20px;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            margin: 20px 0;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(10, 14, 39, 0.3);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .control-label {
+            font-family: 'Fira Code', monospace;
+            color: var(--primary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            background: var(--mid-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--primary);
+            padding: 10px;
+            font-family: 'Fira Code', monospace;
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: var(--glow);
+        }
+
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            box-shadow: var(--glow-strong);
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: var(--mid-bg);
+            border: 1px solid var(--primary);
+        }
+
+        .explanation {
+            background: rgba(10, 14, 39, 0.4);
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .explanation h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .explanation code {
+            background: var(--mid-bg);
+            padding: 2px 8px;
+            border-radius: 3px;
+            color: var(--success);
+        }
+
+        .antenna-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .antenna {
+            width: 60px;
+            height: 60px;
+            background: var(--mid-bg);
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .antenna.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            box-shadow: var(--glow-strong);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2px;
+            margin: 20px 0;
+            background: rgba(10, 14, 39, 0.5);
+            padding: 10px;
+        }
+
+        .resource-element {
+            width: 30px;
+            height: 30px;
+            background: var(--mid-bg);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .resource-element.allocated {
+            background: linear-gradient(135deg, var(--success), var(--primary));
+            border-color: var(--success);
+        }
+
+        .resource-element.pilot {
+            background: var(--warning);
+            border-color: var(--warning);
+        }
+
+        .resource-element:hover {
+            transform: scale(1.2);
+            z-index: 10;
+            box-shadow: var(--glow);
+        }
+
+        .waveform-display {
+            background: rgba(10, 14, 39, 0.5);
+            padding: 20px;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 300px;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: rgba(31, 40, 71, 0.5);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--glow);
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-family: 'Fira Code', monospace;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .matrix {
+            font-family: 'Fira Code', monospace;
+            background: rgba(10, 14, 39, 0.5);
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            overflow-x: auto;
+        }
+
+        .matrix-row {
+            display: flex;
+            gap: 10px;
+            margin: 5px 0;
+        }
+
+        .matrix-cell {
+            min-width: 60px;
+            padding: 8px;
+            background: var(--mid-bg);
+            border: 1px solid var(--primary);
+            text-align: center;
+            color: var(--success);
+            font-size: 0.85rem;
+        }
+
+        .layer-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin: 0 5px;
+            vertical-align: middle;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(10, 14, 39, 0.3);
+            border: 1px solid rgba(0, 217, 255, 0.2);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 25px;
+            height: 25px;
+            border: 2px solid var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .resource-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+            
+            .resource-element {
+                width: 20px;
+                height: 20px;
+                font-size: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>5G NR PHYSICAL LAYER</h1>
+            <div class="subtitle">PRECODING • RESOURCE MAPPING • OFDM</div>
+        </header>
+
+   
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('precoding')">Precoding</button>
+            <button class="tab-btn" onclick="switchTab('resource-mapping')">Resource Mapping</button>
+            <button class="tab-btn" onclick="switchTab('ofdm')">OFDM Generation</button>
+        </div>
+
+        <!-- PRECODING MODULE -->
+        <div id="precoding" class="module active">
+            <div class="split-layout">
+                <div class="card">
+                    <h2 class="card-title">Precoding Matrix</h2>
+                    
+                    <div class="controls">
+                        <div class="control-group">
+                            <label class="control-label">Number of Layers</label>
+                            <select id="num-layers" onchange="updatePrecoding()">
+                                <option value="1">1 Layer</option>
+                                <option value="2" selected>2 Layers</option>
+                                <option value="4">4 Layers</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Number of Antennas</label>
+                            <select id="num-antennas" onchange="updatePrecoding()">
+                                <option value="2">2 Antennas</option>
+                                <option value="4" selected>4 Antennas</option>
+                                <option value="8">8 Antennas</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">PMI (Precoding Matrix Indicator)</label>
+                            <select id="pmi" onchange="updatePrecoding()">
+                                <option value="0" selected>PMI 0 - Spatial Multiplexing</option>
+                                <option value="1">PMI 1 - Diversity</option>
+                                <option value="2">PMI 2 - Beamforming</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="matrix" id="precoding-matrix">
+                        <!-- Matrix will be generated here -->
+                    </div>
+
+                    <div style="text-align: center; margin: 20px 0;">
+                        <button class="btn" onclick="startPrecodingAnimation()">⚡ Start Precoding</button>
+                        <button class="btn btn-secondary" onclick="resetPrecodingAnimation()">🔄 Reset</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Antenna Configuration</h2>
+                    
+                    <div class="antenna-grid" id="antenna-grid">
+                        <!-- Antennas will be generated here -->
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="pc-layers">2</div>
+                            <div class="stat-label">Active Layers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="pc-antennas">4</div>
+                            <div class="stat-label">TX Antennas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="pc-gain">6 dB</div>
+                            <div class="stat-label">Array Gain</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="explanation" id="pc-explanation-simple">
+                <h3>💡 What is Precoding?</h3>
+                <p>Precoding is like having multiple speakers playing the same song but adjusting each speaker's volume and timing so the sound arrives perfectly at your ears. In 5G, we use multiple antennas and adjust the signal going to each one so they combine constructively at the receiver.</p>
+                <p><strong>Key Concepts:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><code>Layers</code>: Independent data streams being transmitted simultaneously</li>
+                    <li><code>Antennas</code>: Physical transmitters that send the signals</li>
+                    <li><code>PMI</code>: Tells us how to distribute power across antennas for best performance</li>
+                </ul>
+            </div>
+
+            <div class="explanation" id="pc-explanation-engineer" style="display: none;">
+                <h3>🔧 Precoding Implementation</h3>
+                <p>The precoding operation maps <code>v</code> layers to <code>p</code> antenna ports using matrix <strong>W</strong>:</p>
+                <p style="margin: 15px 0;"><code>y = W × x</code></p>
+                <p>Where:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><code>x</code>: Input symbol vector (v × 1)</li>
+                    <li><code>W</code>: Precoding matrix (p × v) selected by PMI</li>
+                    <li><code>y</code>: Precoded output vector (p × 1)</li>
+                </ul>
+                <p style="margin-top: 15px;">The precoding matrix is selected from a codebook based on CSI-RS feedback. For rank-2 transmission with 4 antenna ports, typical precoding matrices include spatial multiplexing, diversity, and beamforming configurations.</p>
+            </div>
+        </div>
+
+        <!-- RESOURCE MAPPING MODULE -->
+        <div id="resource-mapping" class="module">
+            <div class="split-layout">
+                <div class="card">
+                    <h2 class="card-title">Resource Grid Configuration</h2>
+                    
+                    <div class="controls">
+                        <div class="control-group">
+                            <label class="control-label">Bandwidth (MHz)</label>
+                            <select id="bandwidth" onchange="updateResourceGrid()">
+                                <option value="20">20 MHz (106 RBs)</option>
+                                <option value="40">40 MHz (216 RBs)</option>
+                                <option value="100" selected>100 MHz (273 RBs)</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Subcarrier Spacing</label>
+                            <select id="scs" onchange="updateResourceGrid()">
+                                <option value="15">15 kHz</option>
+                                <option value="30" selected>30 kHz</option>
+                                <option value="60">60 kHz</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Allocated RBs</label>
+                            <input type="range" id="allocated-rbs" min="1" max="50" value="12" 
+                                   oninput="document.getElementById('rb-value').textContent=this.value; updateResourceGrid()">
+                            <div style="text-align: center; color: var(--primary); margin-top: 5px;">
+                                <span id="rb-value">12</span> RBs
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(135deg, var(--success), var(--primary));"></div>
+                            <span>Data REs</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--warning);"></div>
+                            <span>DMRS Pilots</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: var(--mid-bg);"></div>
+                            <span>Unused</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Resource Allocation</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="rm-total-res">1584</div>
+                            <div class="stat-label">Total REs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="rm-data-res">1392</div>
+                            <div class="stat-label">Data REs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="rm-pilot-res">192</div>
+                            <div class="stat-label">Pilot REs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="rm-efficiency">88%</div>
+                            <div class="stat-label">Efficiency</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Resource Grid Visualization</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 15px; font-family: 'Fira Code', monospace;">
+                    One Resource Block = 12 subcarriers × 14 OFDM symbols
+                </p>
+                <div class="resource-grid" id="resource-grid">
+                    <!-- Resource elements will be generated here -->
+                </div>
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn" onclick="startMappingAnimation()">⚡ Animate Mapping</button>
+                    <button class="btn btn-secondary" onclick="resetMappingAnimation()">🔄 Reset</button>
+                </div>
+            </div>
+
+            <div class="explanation" id="rm-explanation-simple">
+                <h3>💡 What is Resource Block Mapping?</h3>
+                <p>Imagine a parking lot where each parking space can hold one piece of data. In 5G, we organize the frequency spectrum into a grid of "parking spaces" called Resource Elements (REs). A Resource Block is a group of 12 × 14 = 168 parking spaces.</p>
+                <p><strong>Why organize this way?</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>We can assign different users different blocks</li>
+                    <li>Some spaces hold data, others hold "reference signals" (pilots) that help the receiver understand the channel</li>
+                    <li>This organization makes it easy to adapt to different channel conditions</li>
+                </ul>
+            </div>
+
+            <div class="explanation" id="rm-explanation-engineer" style="display: none;">
+                <h3>🔧 Resource Element Mapping</h3>
+                <p>The resource grid maps complex modulation symbols to time-frequency REs according to TS 38.211:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Frequency domain:</strong> Subcarrier index <code>k = 0, 1, ..., N<sub>RB</sub> × 12 - 1</code></li>
+                    <li><strong>Time domain:</strong> OFDM symbol index <code>l = 0, 1, ..., 13</code> (normal CP)</li>
+                    <li><strong>DMRS pattern:</strong> Type 1 or Type 2 with configurable positions</li>
+                    <li><strong>RE mapping:</strong> <code>a<sub>k,l</sub><sup>(p)</sup></code> for antenna port p</li>
+                </ul>
+                <p style="margin-top: 15px;">Resource allocation uses either Type 0 (bitmap), Type 1 (RIV), or dynamic grant scheduling. DMRS overhead typically ranges from 8-16% depending on configuration.</p>
+            </div>
+        </div>
+
+        <!-- OFDM MODULE -->
+        <div id="ofdm" class="module">
+            <div class="split-layout">
+                <div class="card">
+                    <h2 class="card-title">OFDM Parameters</h2>
+                    
+                    <div class="controls">
+                        <div class="control-group">
+                            <label class="control-label">FFT Size</label>
+                            <select id="fft-size" onchange="updateOFDM()">
+                                <option value="256">256</option>
+                                <option value="512">512</option>
+                                <option value="1024" selected>1024</option>
+                                <option value="2048">2048</option>
+                                <option value="4096">4096</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Cyclic Prefix</label>
+                            <select id="cp-type" onchange="updateOFDM()">
+                                <option value="normal" selected>Normal CP</option>
+                                <option value="extended">Extended CP</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Subcarriers Used</label>
+                            <input type="range" id="active-subcarriers" min="100" max="1000" value="600" 
+                                   oninput="document.getElementById('sc-value').textContent=this.value; updateOFDM()">
+                            <div style="text-align: center; color: var(--primary); margin-top: 5px;">
+                                <span id="sc-value">600</span> / 1024
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="ofdm-duration">35.7 μs</div>
+                            <div class="stat-label">Symbol Duration</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="ofdm-cp">2.4 μs</div>
+                            <div class="stat-label">CP Duration</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="ofdm-bw">30 kHz</div>
+                            <div class="stat-label">Subcarrier Spacing</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Time Domain Waveform</h2>
+                    <div class="waveform-display">
+                        <canvas id="waveform-canvas"></canvas>
+                    </div>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <button class="btn" onclick="generateOFDM()">⚡ Generate OFDM</button>
+                        <button class="btn btn-secondary" onclick="clearWaveform()">🔄 Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Frequency Domain Representation</h2>
+                <div class="waveform-display">
+                    <canvas id="frequency-canvas"></canvas>
+                </div>
+            </div>
+
+            <div class="explanation" id="ofdm-explanation-simple">
+                <h3>💡 What is OFDM?</h3>
+                <p>OFDM (Orthogonal Frequency Division Multiplexing) is like having multiple lanes on a highway instead of one wide road. Each lane (subcarrier) carries data independently, and they're carefully spaced so they don't interfere with each other.</p>
+                <p><strong>Why OFDM?</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Resilient to interference:</strong> If one lane has traffic, others keep moving</li>
+                    <li><strong>Simple equalization:</strong> Each narrow lane is easier to maintain than one wide road</li>
+                    <li><strong>Cyclic Prefix:</strong> Like a buffer zone that absorbs echoes from multipath propagation</li>
+                </ul>
+            </div>
+
+            <div class="explanation" id="ofdm-explanation-engineer" style="display: none;">
+                <h3>🔧 OFDM Signal Generation</h3>
+                <p>The OFDM baseband signal is generated via IFFT operation:</p>
+                <p style="margin: 15px 0;"><code>s(n) = IFFT{X(k)} = (1/N) Σ X(k)e<sup>j2πkn/N</sup></code></p>
+                <p><strong>Key parameters:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><code>N</code>: FFT size determining frequency resolution</li>
+                    <li><code>Δf</code>: Subcarrier spacing (15/30/60/120 kHz in NR)</li>
+                    <li><code>T<sub>CP</sub></code>: Cyclic prefix duration (for normal CP: 144 × T<sub>s</sub> for first symbol, 128 × T<sub>s</sub> for others)</li>
+                    <li><code>T<sub>s</sub></code>: Basic time unit = 1/(Δf<sub>max</sub> × N<sub>f</sub>) where Δf<sub>max</sub> = 480 kHz</li>
+                </ul>
+                <p style="margin-top: 15px;">The CP is a cyclic repetition of the end of the IFFT output, providing ISI immunity for delay spreads up to the CP duration.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentTab = 'precoding';
+        let currentMode = 'student';
+        let animating = false;
+
+        // Tab and Mode Switching
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            currentTab = id;
+            
+            if (id === 'ofdm') {
+                setTimeout(() => {
+                    initWaveformCanvas();
+                    updateOFDM();
+                }, 100);
+            }
+        }
+
+        function switchMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            currentMode = mode;
+            
+            ['pc', 'rm', 'ofdm'].forEach(prefix => {
+                const simple = document.getElementById(prefix + '-explanation-simple');
+                const engineer = document.getElementById(prefix + '-explanation-engineer');
+                if (simple && engineer) {
+                    simple.style.display = mode === 'student' ? 'block' : 'none';
+                    engineer.style.display = mode === 'engineer' ? 'block' : 'none';
+                }
+            });
+        }
+
+        // PRECODING FUNCTIONS
+        function updatePrecoding() {
+            const layers = parseInt(document.getElementById('num-layers').value);
+            const antennas = parseInt(document.getElementById('num-antennas').value);
+            const pmi = parseInt(document.getElementById('pmi').value);
+            
+            // Update stats
+            document.getElementById('pc-layers').textContent = layers;
+            document.getElementById('pc-antennas').textContent = antennas;
+            document.getElementById('pc-gain').textContent = (3 * Math.log2(antennas)).toFixed(1) + ' dB';
+            
+            // Generate precoding matrix
+            const matrix = generatePrecodingMatrix(layers, antennas, pmi);
+            displayMatrix(matrix, 'precoding-matrix');
+            
+            // Update antenna grid
+            updateAntennaGrid(antennas);
+        }
+
+        function generatePrecodingMatrix(layers, antennas, pmi) {
+            const matrix = [];
+            for (let i = 0; i < antennas; i++) {
+                const row = [];
+                for (let j = 0; j < layers; j++) {
+                    if (pmi === 0) { // Spatial multiplexing
+                        row.push(i === j ? '1.0' : '0.0');
+                    } else if (pmi === 1) { // Diversity
+                        const phase = (i * j * Math.PI / 2) % (2 * Math.PI);
+                        const val = (1 / Math.sqrt(antennas));
+                        row.push(val.toFixed(2) + '∠' + ((phase * 180 / Math.PI).toFixed(0)) + '°');
+                    } else { // Beamforming
+                        const phase = (i * 2 * Math.PI / antennas) * j;
+                        const val = (1 / Math.sqrt(antennas));
+                        row.push(val.toFixed(2) + '∠' + ((phase * 180 / Math.PI).toFixed(0)) + '°');
+                    }
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        function displayMatrix(matrix, containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            matrix.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'matrix-row';
+                row.forEach(cell => {
+                    const cellDiv = document.createElement('div');
+                    cellDiv.className = 'matrix-cell';
+                    cellDiv.textContent = cell;
+                    rowDiv.appendChild(cellDiv);
+                });
+                container.appendChild(rowDiv);
+            });
+        }
+
+        function updateAntennaGrid(count) {
+            const grid = document.getElementById('antenna-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const ant = document.createElement('div');
+                ant.className = 'antenna';
+                ant.textContent = 'TX' + i;
+                ant.id = 'antenna-' + i;
+                grid.appendChild(ant);
+            }
+        }
+
+        function startPrecodingAnimation() {
+            if (animating) return;
+            animating = true;
+            
+            const antennas = parseInt(document.getElementById('num-antennas').value);
+            let idx = 0;
+            
+            const interval = setInterval(() => {
+                if (idx >= antennas) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.querySelectorAll('.antenna').forEach(a => a.classList.remove('active'));
+                        animating = false;
+                    }, 1000);
+                    return;
+                }
+                
+                const ant = document.getElementById('antenna-' + idx);
+                if (ant) ant.classList.add('active');
+                idx++;
+            }, 300);
+        }
+
+        function resetPrecodingAnimation() {
+            document.querySelectorAll('.antenna').forEach(a => a.classList.remove('active'));
+            animating = false;
+        }
+
+        // RESOURCE MAPPING FUNCTIONS
+        function updateResourceGrid() {
+            const bandwidth = parseInt(document.getElementById('bandwidth').value);
+            const scs = parseInt(document.getElementById('scs').value);
+            const allocatedRBs = parseInt(document.getElementById('allocated-rbs').value);
+            
+            // Calculate REs
+            const symbolsPerRB = 14;
+            const subcarriersPerRB = 12;
+            const totalREs = allocatedRBs * symbolsPerRB * subcarriersPerRB;
+            const pilotREs = Math.floor(totalREs * 0.12); // ~12% for DMRS
+            const dataREs = totalREs - pilotREs;
+            const efficiency = ((dataREs / totalREs) * 100).toFixed(0);
+            
+            // Update stats
+            document.getElementById('rm-total-res').textContent = totalREs;
+            document.getElementById('rm-data-res').textContent = dataREs;
+            document.getElementById('rm-pilot-res').textContent = pilotREs;
+            document.getElementById('rm-efficiency').textContent = efficiency + '%';
+            
+            // Generate resource grid visualization
+            generateResourceGrid(allocatedRBs);
+        }
+
+        function generateResourceGrid(numRBs) {
+            const grid = document.getElementById('resource-grid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = 'repeat(12, 1fr)';
+            
+            // Show first RB with DMRS pattern
+            const dmrsPositions = [2, 8]; // DMRS in symbols 2 and 8
+            
+            for (let symbol = 0; symbol < 14; symbol++) {
+                for (let subcarrier = 0; subcarrier < 12; subcarrier++) {
+                    const re = document.createElement('div');
+                    re.className = 'resource-element';
+                    
+                    if (dmrsPositions.includes(symbol) && subcarrier % 2 === 0) {
+                        re.classList.add('pilot');
+                        re.textContent = 'P';
+                    } else {
+                        re.classList.add('allocated');
+                        re.textContent = 'D';
+                    }
+                    
+                    grid.appendChild(re);
+                }
+            }
+        }
+
+        function startMappingAnimation() {
+            if (animating) return;
+            animating = true;
+            
+            const elements = document.querySelectorAll('.resource-element');
+            elements.forEach((el, idx) => {
+                setTimeout(() => {
+                    el.style.transform = 'scale(1.3)';
+                    setTimeout(() => {
+                        el.style.transform = 'scale(1)';
+                    }, 200);
+                }, idx * 10);
+            });
+            
+            setTimeout(() => {
+                animating = false;
+            }, elements.length * 10 + 500);
+        }
+
+        function resetMappingAnimation() {
+            document.querySelectorAll('.resource-element').forEach(el => {
+                el.style.transform = 'scale(1)';
+            });
+            animating = false;
+        }
+
+        // OFDM FUNCTIONS
+        let waveformCtx, frequencyCtx;
+
+        function initWaveformCanvas() {
+            const waveCanvas = document.getElementById('waveform-canvas');
+            const freqCanvas = document.getElementById('frequency-canvas');
+            
+            if (waveCanvas && freqCanvas) {
+                waveformCtx = waveCanvas.getContext('2d');
+                frequencyCtx = freqCanvas.getContext('2d');
+                
+                waveCanvas.width = waveCanvas.offsetWidth;
+                waveCanvas.height = 300;
+                freqCanvas.width = freqCanvas.offsetWidth;
+                freqCanvas.height = 300;
+            }
+        }
+
+        function updateOFDM() {
+            const fftSize = parseInt(document.getElementById('fft-size').value);
+            const cpType = document.getElementById('cp-type').value;
+            const activeSubcarriers = parseInt(document.getElementById('active-subcarriers').value);
+            
+            // Calculate parameters
+            const scs = 30; // kHz
+            const symbolDuration = (1000 / scs).toFixed(1); // μs
+            const cpDuration = cpType === 'normal' ? (symbolDuration * 0.07).toFixed(1) : (symbolDuration * 0.25).toFixed(1);
+            
+            // Update stats
+            document.getElementById('ofdm-duration').textContent = symbolDuration + ' μs';
+            document.getElementById('ofdm-cp').textContent = cpDuration + ' μs';
+            document.getElementById('ofdm-bw').textContent = scs + ' kHz';
+        }
+
+        function generateOFDM() {
+            if (!waveformCtx || !frequencyCtx) {
+                initWaveformCanvas();
+            }
+            
+            const fftSize = parseInt(document.getElementById('fft-size').value);
+            const activeSubcarriers = parseInt(document.getElementById('active-subcarriers').value);
+            
+            // Generate frequency domain signal
+            const freqDomain = new Array(fftSize).fill(0).map((_, i) => {
+                if (i < activeSubcarriers / 2 || i > fftSize - activeSubcarriers / 2) {
+                    return Math.random() * 2 - 1;
+                }
+                return 0;
+            });
+            
+            // Simple IFFT simulation (just for visualization)
+            const timeDomain = [];
+            for (let n = 0; n < fftSize; n++) {
+                let real = 0;
+                for (let k = 0; k < fftSize; k++) {
+                    real += freqDomain[k] * Math.cos(2 * Math.PI * k * n / fftSize);
+                }
+                timeDomain.push(real / fftSize);
+            }
+            
+            // Draw time domain
+            drawWaveform(waveformCtx, timeDomain, '#00d9ff', 'Time Domain (I component)');
+            
+            // Draw frequency domain
+            drawWaveform(frequencyCtx, freqDomain, '#00ff88', 'Frequency Domain');
+        }
+
+        function drawWaveform(ctx, data, color, label) {
+            const canvas = ctx.canvas;
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 40;
+            
+            // Clear canvas
+            ctx.fillStyle = 'rgba(10, 14, 39, 0.9)';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(0, 217, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 10; i++) {
+                const y = padding + (height - 2 * padding) * i / 10;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+            
+            // Draw waveform
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const max = Math.max(...data.map(Math.abs));
+            const scale = (height - 2 * padding) / (2 * max);
+            const xStep = (width - 2 * padding) / data.length;
+            
+            data.forEach((val, i) => {
+                const x = padding + i * xStep;
+                const y = height / 2 - val * scale;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            
+            ctx.stroke();
+            
+            // Draw label
+            ctx.fillStyle = '#e8f4f8';
+            ctx.font = '14px "Fira Code"';
+            ctx.fillText(label, padding, padding - 10);
+        }
+
+        function clearWaveform() {
+            if (waveformCtx) {
+                waveformCtx.fillStyle = 'rgba(10, 14, 39, 0.9)';
+                waveformCtx.fillRect(0, 0, waveformCtx.canvas.width, waveformCtx.canvas.height);
+            }
+            if (frequencyCtx) {
+                frequencyCtx.fillStyle = 'rgba(10, 14, 39, 0.9)';
+                frequencyCtx.fillRect(0, 0, frequencyCtx.canvas.width, frequencyCtx.canvas.height);
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            updatePrecoding();
+            updateResourceGrid();
+            initWaveformCanvas();
+            updateOFDM();
+        });
+
+        // Handle window resize for canvas
+        window.addEventListener('resize', () => {
+            if (currentTab === 'ofdm') {
+                initWaveformCanvas();
+                clearWaveform();
+            }
+        });
+    </script>
+</body>
+</html>

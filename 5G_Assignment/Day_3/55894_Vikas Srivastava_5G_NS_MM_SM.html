@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G Core Architecture - Vikas Srivastava</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+        :root {
+            --ue-color: #4F46E5;    
+            --gnb-color: #0F172A;   
+            --amf-color: #059669;   
+            --smf-color: #7C3AED;   
+            --upf-color: #EA580C;   
+            --packet-color: #F43F5E; 
+            --bg-grid: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #ffffff;
+            color: #1e293b;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .grid-bg {
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: #0f172a;
+            color: #ffffff;
+            padding: 12px 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 14px;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Tooltip Styling */
+        #info-tooltip {
+            position: fixed;
+            pointer-events: none;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            width: 280px;
+            font-size: 12px;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+        }
+
+        .tooltip-header {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .node-card {
+            cursor: help;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .node-card:hover {
+            filter: brightness(1.2) drop-shadow(0 0 15px rgba(0,0,0,0.2));
+            transform: scale(1.02);
+        }
+
+        .interface-line {
+            fill: none;
+            stroke: #cbd5e1;
+            stroke-width: 3;
+            stroke-dasharray: 6;
+        }
+
+        .protocol-pill {
+            fill: rgba(255, 255, 255, 0.15);
+            stroke: rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar-item {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: #ffffff;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .sidebar-item:hover {
+            border-color: #0f172a;
+            background: #f8fafc;
+        }
+
+        .sidebar-item.active {
+            background: #0f172a;
+            color: white;
+        }
+
+        .log-stream {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            border-left: 3px solid #e2e8f0;
+        }
+
+        .btn-tab {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .btn-tab.active {
+            background: #0f172a;
+            color: white;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+
+    <div class="watermark">ID: 55984 - VIKAS SRIVASTAVA</div>
+
+    <!-- Info Tooltip -->
+    <div id="info-tooltip">
+        <div class="tooltip-header">
+            <span id="tooltip-name">Block Name</span>
+            <span id="tooltip-id" class="opacity-50 text-[10px]">3GPP NF</span>
+        </div>
+        <div id="tooltip-desc" class="mb-3 text-slate-300">Description goes here.</div>
+        <div class="space-y-1">
+            <div class="flex justify-between"><span class="opacity-50">Interface:</span><span id="tooltip-int" class="font-bold text-indigo-400"></span></div>
+            <div class="flex justify-between"><span class="opacity-50">Protocol:</span><span id="tooltip-proto" class="font-bold text-emerald-400"></span></div>
+        </div>
+    </div>
+
+    <header class="h-20 border-b border-slate-200 px-8 flex justify-between items-center bg-white z-20">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl italic">5G</div>
+            <div>
+                <h1 class="text-xl font-extrabold tracking-tight text-slate-900">CORE ARCHITECTURE VISUALIZER</h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Hover nodes for Technical Intelligence</p>
+            </div>
+        </div>
+        
+        <div class="flex bg-slate-100 p-1.5 rounded-xl gap-1">
+            <button id="mmTab" class="btn-tab active" onclick="switchMode('mm')">Mobility Management</button>
+            <button id="smTab" class="btn-tab text-slate-500" onclick="switchMode('sm')">Session Management</button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden grid-bg">
+        <aside class="w-80 bg-white border-r border-slate-200 p-6 flex flex-col gap-6 z-10 shadow-xl">
+            <div id="mmControls" class="space-y-3">
+                <h3 class="text-[11px] font-black text-indigo-600 uppercase tracking-widest">5GMM Procedures</h3>
+                <div class="sidebar-item p-4" onclick="runProc('registration')">
+                    <div class="font-bold text-sm">Initial Registration</div>
+                    <div class="text-[10px] opacity-60">Complete UE Onboarding</div>
+                </div>
+                <div class="sidebar-item p-4" onclick="runProc('security')">
+                    <div class="font-bold text-sm">Security Mode</div>
+                    <div class="text-[10px] opacity-60">NEA2/NIA2 Encryption</div>
+                </div>
+            </div>
+
+            <div id="smControls" class="space-y-3 hidden">
+                <h3 class="text-[11px] font-black text-violet-600 uppercase tracking-widest">5GSM Procedures</h3>
+                <div class="sidebar-item p-4" onclick="runProc('pdu_est')">
+                    <div class="font-bold text-sm">PDU Establishment</div>
+                    <div class="text-[10px] opacity-60">Create Data Session</div>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col min-h-0">
+                <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Protocol Logs</h3>
+                <div id="logStream" class="flex-1 overflow-y-auto space-y-2 pr-2 log-stream pl-4">
+                    <div class="text-[11px] text-slate-400 italic">Core Network Standby...</div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-12 relative">
+            <svg id="canvas" viewBox="0 0 1000 600" class="w-full h-full drop-shadow-2xl">
+                <!-- Paths -->
+                <path id="n1_path" d="M 150 200 L 150 80 L 700 80 L 700 180" class="interface-line" />
+                <path id="n2_path" d="M 450 350 L 650 350" class="interface-line" />
+                <path id="n3_path" d="M 450 450 L 850 450" class="interface-line" />
+                <path id="n4_path" d="M 850 300 L 850 400" class="interface-line" />
+                <path id="n11_path" d="M 750 250 L 800 250" class="interface-line" />
+
+                <!-- Nodes -->
+                <g id="ue_node" class="node-card" onmouseenter="showInfo('ue')" onmouseleave="hideInfo()">
+                    <rect x="50" y="200" width="200" height="300" rx="16" fill="var(--ue-color)" />
+                    <text x="150" y="235" text-anchor="middle" fill="white" font-weight="800" font-size="16">UE</text>
+                    <rect x="65" y="260" width="170" height="35" rx="6" class="protocol-pill" />
+                    <text x="150" y="282" text-anchor="middle" fill="white" font-size="10" font-weight="700">5G NAS (MM/SM)</text>
+                    <rect x="65" y="305" width="170" height="35" rx="6" class="protocol-pill" />
+                    <text x="150" y="327" text-anchor="middle" fill="white" font-size="10" font-weight="700">RRC / AS</text>
+                </g>
+
+                <g id="gnb_node" class="node-card" onmouseenter="showInfo('gnb')" onmouseleave="hideInfo()">
+                    <rect x="350" y="300" width="200" height="200" rx="16" fill="var(--gnb-color)" />
+                    <text x="450" y="335" text-anchor="middle" fill="white" font-weight="800" font-size="16">gNodeB</text>
+                    <rect x="365" y="415" width="170" height="65" rx="6" fill="rgba(255,255,255,0.05)" />
+                    <text x="450" y="455" text-anchor="middle" fill="white" font-size="10" font-weight="700">GTP-U RELAY</text>
+                </g>
+
+                <g id="amf_node" class="node-card" onmouseenter="showInfo('amf')" onmouseleave="hideInfo()">
+                    <rect x="650" y="180" width="200" height="220" rx="16" fill="var(--amf-color)" />
+                    <text x="750" y="215" text-anchor="middle" fill="white" font-weight="800" font-size="16">AMF</text>
+                    <rect x="665" y="280" width="170" height="100" rx="6" fill="rgba(0,0,0,0.1)" />
+                    <text x="750" y="335" text-anchor="middle" fill="white" font-size="10" font-weight="700">MOBILITY & AUTH</text>
+                </g>
+
+                <g id="smf_node" class="node-card" opacity="0.1" onmouseenter="showInfo('smf')" onmouseleave="hideInfo()">
+                    <rect x="800" y="80" width="150" height="150" rx="16" fill="var(--smf-color)" />
+                    <text x="875" y="115" text-anchor="middle" fill="white" font-weight="800" font-size="14">SMF</text>
+                </g>
+
+                <g id="upf_node" class="node-card" opacity="0.1" onmouseenter="showInfo('upf')" onmouseleave="hideInfo()">
+                    <rect x="850" y="400" width="120" height="160" rx="16" fill="var(--upf-color)" />
+                    <text x="910" y="435" text-anchor="middle" fill="white" font-weight="800" font-size="14">UPF</text>
+                </g>
+
+                <g id="packet_container"></g>
+            </svg>
+        </main>
+    </div>
+
+    <script>
+        const nodeData = {
+            ue: {
+                name: "User Equipment",
+                id: "UE",
+                desc: "The mobile device containing the USIM. Handles NAS signaling for mobility and session management.",
+                int: "N1 (NAS)",
+                proto: "5GMM / 5GSM"
+            },
+            gnb: {
+                name: "gNodeB",
+                id: "RAN",
+                desc: "The 5G Base Station. Terminates the RRC (Radio) connection and relays NAS signaling to the Core.",
+                int: "N2 (Control), N3 (User)",
+                proto: "NGAP / RRC"
+            },
+            amf: {
+                name: "Access Mgmt Function",
+                id: "AMF",
+                desc: "The primary control plane node. Handles registration, authentication, and mobility management.",
+                int: "N1, N2, N11",
+                proto: "NAS / NGAP"
+            },
+            smf: {
+                name: "Session Mgmt Function",
+                id: "SMF",
+                desc: "Manages PDU sessions. Handles IP address allocation and QoS policy control.",
+                int: "N11, N4",
+                proto: "PFCP / NAS-SM"
+            },
+            upf: {
+                name: "User Plane Function",
+                id: "UPF",
+                desc: "The data gateway. Routes and forwards user traffic between the gNB and external Data Networks.",
+                int: "N3, N4, N6",
+                proto: "GTP-U / PFCP"
+            }
+        };
+
+        function showInfo(nodeId) {
+            const data = nodeData[nodeId];
+            const tooltip = document.getElementById('info-tooltip');
+            
+            document.getElementById('tooltip-name').innerText = data.name;
+            document.getElementById('tooltip-id').innerText = data.id;
+            document.getElementById('tooltip-desc').innerText = data.desc;
+            document.getElementById('tooltip-int').innerText = data.int;
+            document.getElementById('tooltip-proto').innerText = data.proto;
+
+            tooltip.style.display = 'block';
+            
+            window.onmousemove = (e) => {
+                tooltip.style.left = (e.clientX + 20) + 'px';
+                tooltip.style.top = (e.clientY + 20) + 'px';
+            };
+        }
+
+        function hideInfo() {
+            document.getElementById('info-tooltip').style.display = 'none';
+        }
+
+        function switchMode(mode) {
+            const mmTab = document.getElementById('mmTab');
+            const smTab = document.getElementById('smTab');
+            const mmCtrl = document.getElementById('mmControls');
+            const smCtrl = document.getElementById('smControls');
+
+            if(mode === 'mm') {
+                mmTab.classList.add('active');
+                smTab.classList.remove('active');
+                mmCtrl.classList.remove('hidden');
+                smCtrl.classList.add('hidden');
+                gsap.to('#smf_node, #upf_node', { opacity: 0.1, duration: 0.5 });
+            } else {
+                smTab.classList.add('active');
+                mmTab.classList.remove('active');
+                smCtrl.classList.remove('hidden');
+                mmCtrl.classList.add('hidden');
+                gsap.to('#smf_node, #upf_node, #amf_node', { opacity: 1, duration: 0.5 });
+            }
+            log(`System: Transition to ${mode.toUpperCase()} context.`);
+        }
+
+        function log(msg) {
+            const stream = document.getElementById('logStream');
+            const div = document.createElement('div');
+            div.className = `mb-2 pb-2 border-b border-slate-50 animate-in fade-in slide-in-from-left-2`;
+            div.innerHTML = `<span class="text-[9px] font-bold opacity-40">[${new Date().toLocaleTimeString()}]</span><br><span>${msg}</span>`;
+            stream.prepend(div);
+        }
+
+        function createPacket(label) {
+            const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("width", "80");
+            rect.setAttribute("height", "28");
+            rect.setAttribute("rx", "6");
+            rect.setAttribute("fill", "var(--packet-color)");
+            
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("x", "40");
+            text.setAttribute("y", "18");
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("fill", "white");
+            text.setAttribute("font-family", "JetBrains Mono");
+            text.setAttribute("font-size", "10px");
+            text.setAttribute("font-weight", "700");
+            text.textContent = label;
+
+            group.appendChild(rect);
+            group.appendChild(text);
+            document.getElementById('packet_container').appendChild(group);
+            return group;
+        }
+
+        async function playPacket(pathId, label, reverse = false) {
+            return new Promise(resolve => {
+                const path = document.getElementById(pathId);
+                const packet = createPacket(label);
+                const len = path.getTotalLength();
+                
+                const progress = { val: reverse ? len : 0 };
+                gsap.to(progress, {
+                    val: reverse ? 0 : len,
+                    duration: 1.5,
+                    ease: "power2.inOut",
+                    onUpdate: () => {
+                        const pt = path.getPointAtLength(progress.val);
+                        gsap.set(packet, { x: pt.x - 40, y: pt.y - 14 });
+                    },
+                    onComplete: () => {
+                        packet.remove();
+                        resolve();
+                    }
+                });
+            });
+        }
+
+        async function runProc(type) {
+            if (type === 'registration') {
+                log("UE -> AMF: Registration Request");
+                await playPacket('n1_path', 'REG_REQ');
+                log("AMF -> UE: Registration Accept");
+                await playPacket('n1_path', 'REG_ACC', true);
+            } 
+            else if (type === 'security') {
+                log("AMF -> UE: Auth Request");
+                await playPacket('n1_path', 'AUTH_REQ', true);
+                log("UE -> AMF: Auth Response");
+                await playPacket('n1_path', 'AUTH_RES');
+                log("AMF -> UE: Security Mode Command");
+                await playPacket('n1_path', 'SEC_MODE', true);
+            }
+            else if (type === 'pdu_est') {
+                log("UE -> AMF: PDU Session Request");
+                await playPacket('n1_path', 'PDU_REQ');
+                
+                log("AMF -> SMF: N11 Context Create");
+                const p = createPacket("N11_SET");
+                gsap.set(p, {x: 710, y: 235});
+                await gsap.to(p, {x: 820, y: 200, duration: 0.8});
+                p.remove();
+
+                log("SMF -> UPF: N4 Session Setup");
+                const p2 = createPacket("N4_RULES");
+                gsap.set(p2, {x: 810, y: 250});
+                await gsap.to(p2, {y: 400, duration: 0.8});
+                p2.remove();
+
+                log("AMF -> UE: PDU Est. Accept");
+                await playPacket('n1_path', 'PDU_ACC', true);
+            }
+        }
+
+        window.onload = () => log("Network Engine Ready. Operator: Vikas Srivastava");
+    </script>
+</body>
+</html>

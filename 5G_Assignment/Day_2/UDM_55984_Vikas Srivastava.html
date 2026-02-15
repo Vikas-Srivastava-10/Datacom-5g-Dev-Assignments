@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G UDM Architecture - Vikas Srivastava</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --udm-color: #3b82f6;
+            --udr-color: #10b981;
+            --ausf-color: #f59e0b;
+            --amf-color: #ef4444;
+            --smf-color: #8b5cf6;
+            --hss-color: #6366f1;
+            --text-color: #1f2937;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* Watermark Styles */
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0.3;
+            font-size: 1.2rem;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        h1 { text-align: center; color: #1e3a8a; }
+
+        /* Architecture Container */
+        .architecture-container {
+            position: relative;
+            width: 900px;
+            height: 500px;
+            margin: 50px auto;
+            border: 2px dashed #cbd5e1;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Block Styles */
+        .block {
+            position: absolute;
+            width: 140px;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 10;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .block i { font-size: 1.5rem; margin-bottom: 5px; }
+
+        .block:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        /* Block Positions */
+        #udm { top: 210px; left: 380px; background-color: var(--udm-color); }
+        #udr { top: 50px; left: 380px; background-color: var(--udr-color); }
+        #ausf { top: 210px; left: 100px; background-color: var(--ausf-color); }
+        #amf { top: 370px; left: 240px; background-color: var(--amf-color); }
+        #smf { top: 370px; left: 520px; background-color: var(--smf-color); }
+        #hss { top: 210px; left: 660px; background-color: var(--hss-color); }
+
+        /* Tooltip Styles - Designed not to hide the block */
+        .tooltip {
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            background: #1e293b;
+            color: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: normal;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .block:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Signal/Wire Styles */
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .wire {
+            stroke: #94a3b8;
+            stroke-width: 3;
+            fill: none;
+        }
+
+        .signal {
+            stroke: #facc15;
+            stroke-width: 4;
+            stroke-dasharray: 10, 20;
+            fill: none;
+            animation: flow 1.5s linear infinite;
+            opacity: 0;
+        }
+
+        /* Trigger signal on block hover */
+        .block:hover ~ svg .signal {
+            opacity: 1;
+        }
+
+        /* Specific Signal Animations based on connection */
+        @keyframes flow {
+            from { stroke-dashoffset: 100; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Theory Section */
+        .theory-section {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            line-height: 1.6;
+        }
+
+        .theory-section h2 { color: var(--udm-color); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .theory-section ul { padding-left: 20px; }
+        .theory-section li { margin-bottom: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="watermark">55984 - Vikas Srivastava</div>
+
+    <h1>5G UDM (Unified Data Management) Interactive Architecture</h1>
+
+    <div class="architecture-container">
+        <!-- SVG Connections (Wires and Signals) -->
+        <svg>
+            <!-- UDM to UDR -->
+            <path id="line-udm-udr" class="wire" d="M 450 210 L 450 130" />
+            <path class="signal" d="M 450 210 L 450 130" style="animation-duration: 0.5s;" />
+
+            <!-- UDM to AUSF -->
+            <path id="line-udm-ausf" class="wire" d="M 380 250 L 240 250" />
+            <path class="signal" d="M 380 250 L 240 250" style="animation-duration: 0.4s;" />
+
+            <!-- UDM to AMF -->
+            <path id="line-udm-amf" class="wire" d="M 400 290 L 310 370" />
+            <path class="signal" d="M 400 290 L 310 370" style="animation-duration: 0.6s;" />
+
+            <!-- UDM to SMF -->
+            <path id="line-udm-smf" class="wire" d="M 500 290 L 590 370" />
+            <path class="signal" d="M 500 290 L 590 370" style="animation-duration: 0.6s;" />
+
+            <!-- UDM to HSS -->
+            <path id="line-udm-hss" class="wire" d="M 520 250 L 660 250" />
+            <path class="signal" d="M 520 250 L 660 250" style="animation-duration: 0.4s;" />
+        </svg>
+
+        <!-- Functional Blocks -->
+        <div class="block" id="udr">
+            <i>📂</i> UDR
+            <div class="tooltip"><b>Unified Data Repository:</b> The actual database that stores subscriber profiles, policy data, and structured data for exposure.</div>
+        </div>
+
+        <div class="block" id="udm">
+            <i>🧠</i> UDM
+            <div class="tooltip"><b>Unified Data Management:</b> The main "brain" for user identity. Handles subscription management, auth credential generation, and mobility management.</div>
+        </div>
+
+        <div class="block" id="ausf">
+            <i>🔑</i> AUSF
+            <div class="tooltip"><b>Authentication Server Function:</b> Acts as an auth proxy between UDM and AMF. Handles the 5G AKA and EAP-based authentication.</div>
+        </div>
+
+        <div class="block" id="amf">
+            <i>📱</i> AMF
+            <div class="tooltip"><b>Access & Mobility Function:</b> Manages registration and mobility. It queries UDM (via N8) to get subscriber context during UE registration.</div>
+        </div>
+
+        <div class="block" id="smf">
+            <i>📡</i> SMF
+            <div class="tooltip"><b>Session Management Function:</b> Manages PDU sessions. It contacts UDM (via N10) to verify subscription data for session establishment.</div>
+        </div>
+
+        <div class="block" id="hss">
+            <i>🔄</i> HSS
+            <div class="tooltip"><b>Home Subscriber Server:</b> Used for interworking with 4G/LTE. UDM includes HSS functionality to support seamless mobility across generations.</div>
+        </div>
+    </div>
+
+    <!-- Theory Section -->
+    <div class="theory-section">
+        <h2>Architecture Overview: UDM in 5G</h2>
+        <p>The <b>Unified Data Management (UDM)</b> is a critical Network Function (NF) in the 5G Core (5GC) Service-Based Architecture. It is essentially the successor to the HSS (Home Subscriber Server) from 4G LTE but is designed to be cloud-native and stateless.</p>
+        
+        <h3>Key Functions of UDM:</h3>
+        <ul>
+            <li><b>Subscription Management:</b> Storing and managing the subscriber's profile, including their identifiers (SUPI/GPSI) and service entitlements.</li>
+            <li><b>Authentication Processing:</b> Generating 5G authentication vectors and credentials in coordination with the AUSF.</li>
+            <li><b>Identity De-concealment:</b> Using the Subscription Identifier De-concealing Function (SIDF) to resolve the privacy-protected SUCI back into a SUPI.</li>
+            <li><b>Mobility Management:</b> Keeping track of the serving AMF for a user to ensure reachability.</li>
+        </ul>
+
+        <h3>Stateless Design & UDR:</h3>
+        <p>Unlike traditional HSS, the UDM is designed to be <b>stateless</b>. It does not store the data itself; instead, it acts as a frontend logic layer that communicates with the <b>UDR (Unified Data Repository)</b> via the <b>N35 interface</b>. This allows for massive scalability and high availability.</p>
+
+        <h3>Interfaces and Connectivity:</h3>
+        <ul>
+            <li><b>Nudm (Service Based):</b> The primary interface through which other NFs (AMF, SMF, AUSF) consume UDM services.</li>
+            <li><b>N8 (UDM - AMF):</b> Used for registration and mobility management.</li>
+            <li><b>N10 (UDM - SMF):</b> Used for session management and subscription data retrieval.</li>
+            <li><b>N13 (UDM - AUSF):</b> Used for authentication procedures.</li>
+        </ul>
+    </div>
+
+    <script>
+        // Interactive Signal Logic:
+        // When a block is hovered, we identify which connection to highlight.
+        const blocks = document.querySelectorAll('.block');
+        const signals = document.querySelectorAll('.signal');
+
+        // Logic handled by CSS (:hover ~ svg .signal) is efficient,
+        // but we can add JS for more complex signaling sequences if needed.
+    </script>
+</body>
+</html>

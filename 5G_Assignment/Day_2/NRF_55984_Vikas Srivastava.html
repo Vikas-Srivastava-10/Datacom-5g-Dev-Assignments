@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NRF Architecture Interactive Diagram</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --nrf-color: #e74c3c;
+            --amf-color: #3498db;
+            --smf-color: #2ecc71;
+            --udm-color: #f1c40f;
+            --pcf-color: #9b59b6;
+            --ausf-color: #e67e22;
+            --bg-dark: #2c3e50;
+            --wire-color: #7f8c8d;
+            --signal-speed: 0.6s;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Watermark Styles */
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            position: relative;
+            width: 900px;
+            height: 550px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: visible;
+            margin-bottom: 40px;
+        }
+
+        /* SVG for Wires and Signals */
+        .lines-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .wire {
+            stroke: var(--wire-color);
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 5;
+        }
+
+        .signal {
+            fill: #f1c40f;
+            visibility: hidden;
+        }
+
+        /* Block Styles */
+        .nf-block {
+            position: absolute;
+            width: 120px;
+            height: 80px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 10;
+        }
+
+        .nf-block i { font-size: 24px; margin-bottom: 5px; }
+        .nf-block span { font-weight: bold; font-size: 14px; }
+
+        .nf-block:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Tooltip style (Hover theory) */
+        .theory-overlay {
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            background: var(--bg-dark);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .nf-block:hover .theory-overlay {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Specific Block Positions */
+        #nrf { top: 225px; left: 390px; background-color: var(--nrf-color); width: 140px; height: 100px; }
+        #amf { top: 50px; left: 150px; background-color: var(--amf-color); }
+        #smf { top: 50px; left: 630px; background-color: var(--smf-color); }
+        #udm { top: 400px; left: 150px; background-color: var(--udm-color); color: #333; }
+        #pcf { top: 400px; left: 630px; background-color: var(--pcf-color); }
+        #ausf { top: 225px; left: 50px; background-color: var(--ausf-color); }
+        #nef { top: 225px; left: 730px; background-color: #16a085; }
+
+        /* Animation Trigger */
+        .nf-block:hover ~ .lines-container .signal {
+            visibility: visible;
+        }
+
+        /* Theory Section below */
+        .theory-section {
+            width: 900px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            line-height: 1.6;
+        }
+
+        .theory-section h2 { color: var(--nrf-color); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .theory-section ul { padding-left: 20px; }
+        .theory-section li { margin-bottom: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="watermark">55984 - Vikas Srivastava</div>
+
+    <h1 style="color: #2c3e50;">5G Core: NRF Architecture Interaction</h1>
+    <p style="color: #7f8c8d; margin-bottom: 30px;">Hover over any Network Function (NF) to see its role and trigger signal discovery!</p>
+
+    <div class="container">
+        <!-- Connection Lines (Wires) -->
+        <svg class="lines-container">
+            <!-- Wires to NRF -->
+            <path id="path-amf" class="wire" d="M 210 130 L 460 225" />
+            <path id="path-smf" class="wire" d="M 690 130 L 460 225" />
+            <path id="path-ausf" class="wire" d="M 170 275 L 390 275" />
+            <path id="path-nef" class="wire" d="M 730 275 L 530 275" />
+            <path id="path-udm" class="wire" d="M 210 400 L 460 325" />
+            <path id="path-pcf" class="wire" d="M 690 400 L 460 325" />
+
+            <!-- Signal Pulses (Fast interactive dots) -->
+            <circle class="signal" r="5">
+                <animateMotion dur="0.6s" repeatCount="indefinite" path="M 210 130 L 460 225" />
+            </circle>
+            <circle class="signal" r="5">
+                <animateMotion dur="0.6s" repeatCount="indefinite" path="M 690 130 L 460 225" />
+            </circle>
+            <circle class="signal" r="5">
+                <animateMotion dur="0.6s" repeatCount="indefinite" path="M 170 275 L 390 275" />
+            </circle>
+            <circle class="signal" r="5">
+                <animateMotion dur="0.6s" repeatCount="indefinite" path="M 730 275 L 530 275" />
+            </circle>
+            <circle class="signal" r="5">
+                <animateMotion dur="0.6s" repeatCount="indefinite" path="M 210 400 L 460 325" />
+            </circle>
+            <circle class="signal" r="5">
+                <animateMotion dur="0.6s" repeatCount="indefinite" path="M 690 400 L 460 325" />
+            </circle>
+        </svg>
+
+        <!-- Network Functions -->
+        <div class="nf-block" id="nrf">
+            <i class="fas fa-database"></i>
+            <span>NRF</span>
+            <div class="theory-overlay">
+                <strong>Network Repository Function</strong><br>
+                The "Phonebook" of the 5G Core. It maintains profiles of available NF instances and their supported services.
+            </div>
+        </div>
+
+        <div class="nf-block" id="amf">
+            <i class="fas fa-tower-broadcast"></i>
+            <span>AMF</span>
+            <div class="theory-overlay">
+                <strong>Access & Mobility Mgmt</strong><br>
+                Handles connection and mobility management for the UE (User Equipment).
+            </div>
+        </div>
+
+        <div class="nf-block" id="smf">
+            <i class="fas fa-network-wired"></i>
+            <span>SMF</span>
+            <div class="theory-overlay">
+                <strong>Session Management</strong><br>
+                Manages individual sessions (PDU) and allocates IP addresses to UEs.
+            </div>
+        </div>
+
+        <div class="nf-block" id="udm">
+            <i class="fas fa-user-shield"></i>
+            <span>UDM</span>
+            <div class="theory-overlay">
+                <strong>Unified Data Mgmt</strong><br>
+                Stores subscriber data and profiles, similar to the HSS in 4G.
+            </div>
+        </div>
+
+        <div class="nf-block" id="pcf">
+            <i class="fas fa-gavel"></i>
+            <span>PCF</span>
+            <div class="theory-overlay">
+                <strong>Policy Control</strong><br>
+                Governs the network behavior by providing policy rules for QoS, charging, etc.
+            </div>
+        </div>
+
+        <div class="nf-block" id="ausf">
+            <i class="fas fa-key"></i>
+            <span>AUSF</span>
+            <div class="theory-overlay">
+                <strong>Authentication Server</strong><br>
+                Handles authentication for 3GPP and non-3GPP access.
+            </div>
+        </div>
+
+        <div class="nf-block" id="nef">
+            <i class="fas fa-door-open"></i>
+            <span>NEF</span>
+            <div class="theory-overlay">
+                <strong>Network Exposure</strong><br>
+                Exposes 5G services safely to 3rd party applications and external users.
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Theory Section -->
+    <div class="theory-section">
+        <h2>Understanding NRF in 5G Architecture</h2>
+        <p>The <strong>Network Repository Function (NRF)</strong> is a critical component of the 5G Service-Based Architecture (SBA). In previous generations (like 4G), network elements were connected point-to-point. In 5G, they communicate via a common service bus where the NRF acts as a central registry.</p>
+        
+        <ul>
+            <li><strong>Service Registration:</strong> When a new Network Function (like an AMF) starts up, it registers its profile (IP address, capacity, supported services) with the NRF.</li>
+            <li><strong>Service Discovery:</strong> When one NF needs to talk to another (e.g., AMF needs a PCF for policy), it queries the NRF to find a suitable instance.</li>
+            <li><strong>Dynamic Scaling:</strong> NRF allows the network to be "cloud-native." New instances of functions can be added or removed dynamically without manual configuration of every other node.</li>
+            <li><strong>Availability Monitoring:</strong> The NRF can monitor the status of registered NFs to ensure that only "healthy" nodes are discovered for communication.</li>
+        </ul>
+        
+        <p><strong>Signal Flow:</strong> In this diagram, hovering over a block simulates an NF sending a <em>Discovery Request</em> or <em>Heartbeat</em> to the NRF. The fast yellow pulses represent the high-speed HTTP/2-based signaling used in modern 5G cores.</p>
+    </div>
+
+</body>
+</html>

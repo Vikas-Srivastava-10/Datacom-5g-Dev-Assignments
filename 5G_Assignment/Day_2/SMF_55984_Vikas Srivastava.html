@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive SMF Architecture - Vikas Srivastava</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --ue-color: #ff5722;
+            --amf-color: #2196f3;
+            --smf-color: #9c27b0;
+            --upf-color: #4caf50;
+            --pcf-color: #ff9800;
+            --udm-color: #e91e63;
+            --dn-color: #607d8b;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        /* Watermark Styles */
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.15);
+            pointer-events: none;
+            z-index: 1000;
+            transform: rotate(-10deg);
+        }
+
+        /* Architecture Container */
+        .arch-container {
+            position: relative;
+            width: 1000px;
+            height: 500px;
+            margin: 0 auto;
+            border: 2px dashed #ccc;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* Block Styles */
+        .block {
+            position: absolute;
+            width: 120px;
+            height: 80px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .block i { font-size: 24px; margin-bottom: 5px; }
+        .block span { font-weight: bold; font-size: 14px; }
+
+        .block:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Tooltip style theory - logic ensures it doesn't hide the block */
+        .theory-popup {
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            background: #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .block:hover .theory-popup {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Block Positions */
+        #ue  { top: 210px; left: 50px; background-color: var(--ue-color); }
+        #amf { top: 100px; left: 250px; background-color: var(--amf-color); }
+        #smf { top: 100px; left: 500px; background-color: var(--smf-color); border: 3px solid #000; }
+        #upf { top: 320px; left: 500px; background-color: var(--upf-color); }
+        #pcf { top: 50px;  left: 750px; background-color: var(--pcf-color); }
+        #udm { top: 150px; left: 750px; background-color: var(--udm-color); }
+        #dn  { top: 320px; left: 800px; background-color: var(--dn-color); }
+
+        /* SVG Wires Layer */
+        .svg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .wire {
+            fill: none;
+            stroke: #ddd;
+            stroke-width: 3;
+            stroke-dasharray: 5;
+        }
+
+        /* Signal Pulse Animation */
+        .signal {
+            fill: #ffd700;
+            filter: drop-shadow(0 0 5px #ffd700);
+        }
+
+        .animate-signal {
+            offset-path: path(attr(d));
+            animation: moveSignal 0.8s linear infinite; /* FAST as requested */
+        }
+
+        @keyframes moveSignal {
+            0% { offset-distance: 0%; }
+            100% { offset-distance: 100%; }
+        }
+
+        /* Theory Section Below */
+        .theory-section {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .theory-section h2 { border-bottom: 2px solid var(--smf-color); padding-bottom: 10px; }
+        .grid-info { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .info-card { border-left: 4px solid var(--smf-color); padding-left: 15px; margin-bottom: 15px; }
+        .info-card h4 { margin: 0 0 5px 0; color: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Interactive 5G SMF Architecture</h1>
+        <p>Hover over blocks to see functional details and observe real-time signal transmission.</p>
+    </div>
+
+    <div class="arch-container">
+        <!-- SVG Connections (Wires) -->
+        <svg class="svg-layer">
+            <!-- UE to AMF -->
+            <path id="path1" class="wire" d="M 170 250 L 250 140" />
+            <!-- AMF to SMF (N11) -->
+            <path id="path2" class="wire" d="M 370 140 L 500 140" />
+            <!-- SMF to PCF (N7) -->
+            <path id="path3" class="wire" d="M 620 140 L 750 90" />
+            <!-- SMF to UDM (N10) -->
+            <path id="path4" class="wire" d="M 620 140 L 750 190" />
+            <!-- SMF to UPF (N4) -->
+            <path id="path5" class="wire" d="M 560 180 L 560 320" />
+            <!-- UPF to DN (N6) -->
+            <path id="path6" class="wire" d="M 620 360 L 800 360" />
+
+            <!-- Signal Pulses (Yellow Dots) -->
+            <circle r="5" class="signal animate-signal"><animateMotion dur="0.8s" repeatCount="indefinite"><mpath href="#path1"/></animateMotion></circle>
+            <circle r="5" class="signal animate-signal"><animateMotion dur="0.8s" repeatCount="indefinite"><mpath href="#path2"/></animateMotion></circle>
+            <circle r="5" class="signal animate-signal"><animateMotion dur="0.8s" repeatCount="indefinite"><mpath href="#path5"/></animateMotion></circle>
+        </svg>
+
+        <!-- Functional Blocks -->
+        <div class="block" id="ue">
+            <i class="fas fa-mobile-alt"></i>
+            <span>UE</span>
+            <div class="theory-popup"><b>User Equipment:</b> Your smartphone or IoT device that initiates the connection request.</div>
+        </div>
+
+        <div class="block" id="amf">
+            <i class="fas fa-tower-broadcast"></i>
+            <span>AMF</span>
+            <div class="theory-popup"><b>Access & Mobility:</b> Handles registration and routes session requests to the SMF.</div>
+        </div>
+
+        <div class="block" id="smf">
+            <i class="fas fa-cogs"></i>
+            <span>SMF</span>
+            <div class="theory-popup"><b>Session Management:</b> The brain of the session. Allocates IP addresses and controls data flow.</div>
+        </div>
+
+        <div class="block" id="upf">
+            <i class="fas fa-route"></i>
+            <span>UPF</span>
+            <div class="theory-popup"><b>User Plane Function:</b> The high-speed highway for actual data packets.</div>
+        </div>
+
+        <div class="block" id="pcf">
+            <i class="fas fa-shield-halved"></i>
+            <span>PCF</span>
+            <div class="theory-popup"><b>Policy Control:</b> Determines quality of service (QoS) and charging rules.</div>
+        </div>
+
+        <div class="block" id="udm">
+            <i class="fas fa-database"></i>
+            <span>UDM</span>
+            <div class="theory-popup"><b>Data Management:</b> Stores user profiles and subscription details.</div>
+        </div>
+
+        <div class="block" id="dn">
+            <i class="fas fa-globe"></i>
+            <span>DN</span>
+            <div class="theory-popup"><b>Data Network:</b> The Internet or private servers you are trying to access.</div>
+        </div>
+    </div>
+
+    <!-- Main Theory Section -->
+    <div class="theory-section">
+        <h2>Architecture Theory: Session Management Function (SMF)</h2>
+        <p>In the 5G Service-Based Architecture (SBA), the <b>SMF</b> is the central control plane element responsible for managing the lifecycle of a PDU (Protocol Data Unit) session.</p>
+        
+        <div class="grid-info">
+            <div class="info-card">
+                <h4>1. IP Address Management</h4>
+                <p>The SMF acts as a DHCP server, allocating and managing IP addresses for every User Equipment (UE) connecting to the network.</p>
+            </div>
+            <div class="info-card">
+                <h4>2. UPF Selection & Control</h4>
+                <p>It selects the best User Plane Function (UPF) for the UE based on location and traffic requirements, then provides routing rules via the N4 interface.</p>
+            </div>
+            <div class="info-card">
+                <h4>3. QoS Policy Enforcement</h4>
+                <p>By communicating with the PCF, the SMF ensures that a gaming session gets low latency while a background download gets standard speed.</p>
+            </div>
+            <div class="info-card">
+                <h4>4. Signal Flow Logic</h4>
+                <p>Signals move from UE → AMF → SMF. The SMF then "wires" the connection by telling the UPF how to route data to the DN (Internet).</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Watermark -->
+    <div class="watermark">55984 - Vikas Srivastava</div>
+
+</body>
+</html>

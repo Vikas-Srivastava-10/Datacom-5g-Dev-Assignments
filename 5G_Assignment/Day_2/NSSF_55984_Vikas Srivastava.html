@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive NSSF Architecture - 5G Core</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --wire-color: #bdc3c7;
+            --signal-color: #f1c40f;
+            --amf-color: #3498db;
+            --nssf-color: #e67e22;
+            --nrf-color: #2ecc71;
+            --sel-color: #9b59b6;
+            --av-color: #1abc9c;
+            --conf-color: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        h1 { text-align: center; color: #2c3e50; }
+
+        /* Watermark */
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 14px;
+            color: rgba(0,0,0,0.3);
+            font-weight: bold;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        /* Architecture Container */
+        .arch-container {
+            position: relative;
+            width: 900px;
+            height: 500px;
+            margin: 50px auto;
+            border: 2px dashed #ccc;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* Generic Block Style */
+        .block {
+            position: absolute;
+            width: 160px;
+            height: 80px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 5;
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+        }
+
+        .block i { font-size: 24px; margin-bottom: 5px; }
+        .block:hover { transform: scale(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+
+        /* Specific Blocks */
+        #AMF { left: 50px; top: 210px; background-color: var(--amf-color); }
+        #NSSF-Core { left: 370px; top: 210px; background-color: var(--nssf-color); width: 200px; height: 120px; }
+        #NRF { right: 50px; top: 210px; background-color: var(--nrf-color); }
+        
+        /* Internal NSSF Services */
+        #NS-Selection { left: 390px; top: 50px; background-color: var(--sel-color); }
+        #NS-Availability { left: 390px; top: 370px; background-color: var(--av-color); }
+
+        /* Wires (SVG) */
+        svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        .wire { fill: none; stroke: var(--wire-color); stroke-width: 3; }
+
+        /* Signal Animation */
+        .signal {
+            fill: var(--signal-color);
+            visibility: hidden;
+        }
+
+        .arch-container:hover .signal {
+            visibility: visible;
+            animation: transmit 1.5s infinite linear;
+        }
+
+        @keyframes transmit {
+            from { offset-distance: 0%; }
+            to { offset-distance: 100%; }
+        }
+
+        /* Hover Theory Box */
+        .tooltip {
+            position: absolute;
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            width: 250px;
+            font-size: 13px;
+            line-height: 1.4;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        /* Theory Content Below */
+        .theory-section {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+        .theory-section h2 { color: var(--nssf-color); border-bottom: 2px solid var(--nssf-color); padding-bottom: 5px; }
+
+    </style>
+</head>
+<body>
+
+    <h1>5G Network Slice Selection Function (NSSF) Architecture</h1>
+
+    <div class="arch-container" id="canvas">
+        <!-- SVG Wires and Signals -->
+        <svg>
+            <!-- AMF to NSSF -->
+            <path id="path1" class="wire" d="M 210 250 L 370 250" />
+            <circle class="signal" r="5">
+                <animateMotion dur="0.8s" repeatCount="indefinite">
+                    <mpath href="#path1"/>
+                </animateMotion>
+            </circle>
+
+            <!-- NSSF to NRF -->
+            <path id="path2" class="wire" d="M 570 250 L 690 250" />
+            <circle class="signal" r="5">
+                <animateMotion dur="0.8s" repeatCount="indefinite">
+                    <mpath href="#path2"/>
+                </animateMotion>
+            </circle>
+
+            <!-- Selection to Core -->
+            <path id="path3" class="wire" d="M 470 130 L 470 210" />
+            <circle class="signal" r="5">
+                <animateMotion dur="0.6s" repeatCount="indefinite">
+                    <mpath href="#path3"/>
+                </animateMotion>
+            </circle>
+
+            <!-- Availability to Core -->
+            <path id="path4" class="wire" d="M 470 370 L 470 330" />
+            <circle class="signal" r="5">
+                <animateMotion dur="0.6s" repeatCount="indefinite">
+                    <mpath href="#path4"/>
+                </animateMotion>
+            </circle>
+        </svg>
+
+        <!-- Blocks -->
+        <div class="block" id="AMF" data-theory="<b>AMF (Access & Mobility Function):</b> Acts as the consumer. It queries the NSSF during registration or PDU session establishment to determine which slice should serve the UE.">
+            <i class="fas fa-users-cog"></i> AMF (N22)
+        </div>
+
+        <div class="block" id="NSSF-Core" data-theory="<b>NSSF Core:</b> The brain of slice selection. It handles requests, interacts with NRF for discovery, and applies operator policies to select the optimal Network Slice Instance (NSI).">
+            <i class="fas fa-microchip"></i> NSSF CORE
+        </div>
+
+        <div class="block" id="NRF" data-theory="<b>NRF (NF Repository Function):</b> NSSF registers itself here. Also, NSSF queries NRF to find candidate AMFs or other NFs within a selected slice.">
+            <i class="fas fa-database"></i> NRF (Nnssf)
+        </div>
+
+        <div class="block" id="NS-Selection" data-theory="<b>Selection Service:</b> Specifically handles the Nnssf_NSSelection service. It parses S-NSSAI (Slice IDs) and determines the 'Allowed NSSAI' for the user.">
+            <i class="fas fa-tasks"></i> NS Selection
+        </div>
+
+        <div class="block" id="NS-Availability" data-theory="<b>Availability Service:</b> Manages Nnssf_NSSAIAvailability. It keeps track of which slices are currently supported in specific Tracking Areas (TAs).">
+            <i class="fas fa-check-circle"></i> NS Availability
+        </div>
+
+        <!-- Tooltip -->
+        <div id="tooltip" class="tooltip"></div>
+    </div>
+
+    <!-- Theory Section -->
+    <div class="theory-section">
+        <h2>Architecture Overview</h2>
+        <p>The <b>Network Slice Selection Function (NSSF)</b> is a critical component of the 5G Service-Based Architecture (SBA). Its primary role is to select the set of Network Slice instances serving the User Equipment (UE).</p>
+        
+        <h3>Key Interactions:</h3>
+        <ul>
+            <li><b>N22 Interface:</b> The connection between AMF and NSSF. AMF sends a request containing the Requested NSSAI to NSSF.</li>
+            <li><b>Nnssf Interface:</b> A service-based interface where NSSF provides its selection and availability services to other authorized NFs.</li>
+            <li><b>Slice Selection Logic:</b> NSSF uses Subscribed S-NSSAIs, local configuration, and Tracking Area Information (TAI) to provide the 'Allowed NSSAI' back to the AMF.</li>
+        </ul>
+        <p><i>Note: Hover over the blocks above to see specific technical details for each component!</i></p>
+    </div>
+
+    <div class="watermark">55984 - Vikas Srivastava</div>
+
+    <script>
+        const blocks = document.querySelectorAll('.block');
+        const tooltip = document.getElementById('tooltip');
+
+        blocks.forEach(block => {
+            block.addEventListener('mousemove', (e) => {
+                tooltip.style.display = 'block';
+                tooltip.innerHTML = block.getAttribute('data-theory');
+                
+                // Position tooltip near cursor but not overlapping
+                tooltip.style.left = (e.pageX + 20) + 'px';
+                tooltip.style.top = (e.pageY + 20) + 'px';
+            });
+
+            block.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

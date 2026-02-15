@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G NR Frame Structure & Physical Resources</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d4ff;
+            --secondary: #ff6b35;
+            --accent: #7d4cdb;
+            --success: #00ff88;
+            --warning: #ffd93d;
+            --dark: #0a0e27;
+            --dark-alt: #1a1f3a;
+            --light: #e8f4f8;
+            --grid-color: rgba(0, 212, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-alt) 100%);
+            color: var(--light);
+            line-height: 1.8;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridScroll 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gridScroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5em;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            animation: glowPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { filter: drop-shadow(0 0 20px var(--primary)); }
+            50% { filter: drop-shadow(0 0 40px var(--primary)); }
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: var(--primary);
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        /* Section styling */
+        .section {
+            background: rgba(26, 31, 58, 0.6);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--primary);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 50px;
+            box-shadow: 0 10px 50px rgba(0, 212, 255, 0.2);
+            animation: fadeInUp 0.8s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .section:nth-child(2) { animation-delay: 0.1s; }
+        .section:nth-child(3) { animation-delay: 0.2s; }
+        .section:nth-child(4) { animation-delay: 0.3s; }
+        .section:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2em;
+            color: var(--primary);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        h2::before {
+            content: '▶';
+            font-size: 0.7em;
+            color: var(--secondary);
+        }
+
+        h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4em;
+            color: var(--success);
+            margin: 30px 0 20px;
+        }
+
+        p {
+            margin-bottom: 20px;
+            font-size: 1.05em;
+        }
+
+        /* Hierarchy Tree */
+        .hierarchy-tree {
+            background: linear-gradient(135deg, rgba(125, 76, 219, 0.2), rgba(0, 212, 255, 0.2));
+            border: 2px solid var(--accent);
+            border-radius: 15px;
+            padding: 30px;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.2em;
+            line-height: 2.2;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hierarchy-tree::before {
+            content: 'HIERARCHY';
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7em;
+            color: var(--accent);
+            opacity: 0.5;
+            letter-spacing: 3px;
+        }
+
+        .tree-level {
+            margin-left: 40px;
+            position: relative;
+            animation: slideIn 0.5s ease-out backwards;
+        }
+
+        .tree-level:nth-child(1) { animation-delay: 0.1s; }
+        .tree-level:nth-child(2) { animation-delay: 0.2s; }
+        .tree-level:nth-child(3) { animation-delay: 0.3s; }
+        .tree-level:nth-child(4) { animation-delay: 0.4s; }
+        .tree-level:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .tree-level::before {
+            content: '└──';
+            color: var(--primary);
+            margin-right: 10px;
+        }
+
+        .highlight {
+            color: var(--secondary);
+            font-weight: 700;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 212, 255, 0.1));
+            border-left: 5px solid var(--success);
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .info-box::before {
+            content: '💡';
+            font-size: 2em;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            opacity: 0.3;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(255, 217, 61, 0.1));
+            border-left: 5px solid var(--warning);
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .warning-box::before {
+            content: '⚡';
+            font-size: 2em;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            opacity: 0.3;
+        }
+
+        /* Numerology Table */
+        .table-container {
+            overflow-x: auto;
+            margin: 30px 0;
+            border-radius: 15px;
+            box-shadow: 0 5px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: rgba(26, 31, 58, 0.8);
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: var(--dark);
+            padding: 20px;
+            text-align: left;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            font-size: 1.05em;
+        }
+
+        tr:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transition: background 0.3s ease;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .mu-value {
+            color: var(--secondary);
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        /* Frame Structure Diagram */
+        .frame-diagram {
+            margin: 40px 0;
+            padding: 30px;
+            background: rgba(10, 14, 39, 0.8);
+            border: 3px solid var(--primary);
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .frame-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1em;
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .frame-container {
+            display: flex;
+            gap: 2px;
+            height: 80px;
+            border: 3px solid var(--primary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+        }
+
+        .subframe {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            color: var(--dark);
+            border-right: 2px solid var(--dark);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .subframe:last-child {
+            border-right: none;
+        }
+
+        .subframe:hover {
+            transform: scaleY(1.1);
+            box-shadow: 0 0 20px var(--primary);
+            z-index: 10;
+        }
+
+        .half-frame-label {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+            font-size: 0.95em;
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* Slot Diagram */
+        .slot-diagram {
+            margin: 40px 0;
+            padding: 30px;
+            background: rgba(10, 14, 39, 0.8);
+            border: 3px solid var(--success);
+            border-radius: 20px;
+        }
+
+        .slot-container {
+            display: flex;
+            gap: 3px;
+            height: 100px;
+            margin-bottom: 20px;
+            border: 3px solid var(--success);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+        }
+
+        .symbol {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85em;
+            font-weight: 700;
+            font-family: 'Orbitron', sans-serif;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .symbol:hover {
+            transform: scaleX(1.2);
+            z-index: 10;
+        }
+
+        .pdcch {
+            background: linear-gradient(135deg, #0066ff, #0099ff);
+            color: white;
+        }
+
+        .pdsch {
+            background: linear-gradient(135deg, #00cc66, #00ff88);
+            color: var(--dark);
+        }
+
+        .flexible {
+            background: linear-gradient(135deg, #ffd93d, #ffaa00);
+            color: var(--dark);
+        }
+
+        .guard {
+            background: linear-gradient(135deg, #666, #999);
+            color: white;
+        }
+
+        .uplink {
+            background: linear-gradient(135deg, #ff3366, #ff6699);
+            color: white;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(26, 31, 58, 0.6);
+            border-radius: 15px;
+            border: 2px solid var(--primary);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        .legend-color {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid var(--light);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Resource Grid */
+        .resource-grid {
+            margin: 40px 0;
+            padding: 30px;
+            background: rgba(10, 14, 39, 0.8);
+            border: 3px solid var(--secondary);
+            border-radius: 20px;
+            overflow-x: auto;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(14, 1fr);
+            gap: 4px;
+            min-width: 800px;
+        }
+
+        .grid-cell {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75em;
+            font-weight: 700;
+            border-radius: 5px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .grid-cell:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px currentColor;
+            z-index: 10;
+        }
+
+        .axis-label {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--secondary);
+            font-weight: 700;
+            margin: 20px 0 10px;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+        }
+
+        /* Formula Box */
+        .formula-box {
+            background: linear-gradient(135deg, rgba(125, 76, 219, 0.2), rgba(255, 107, 53, 0.2));
+            border: 3px solid var(--accent);
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 15px;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.3em;
+            text-align: center;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 30px rgba(125, 76, 219, 0.3);
+        }
+
+        /* Slots per Subframe Visual */
+        .slots-visual {
+            margin: 30px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mu-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .mu-label {
+            width: 100px;
+            font-weight: 700;
+            color: var(--secondary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1em;
+        }
+
+        .slots-container {
+            flex: 1;
+            display: flex;
+            gap: 5px;
+        }
+
+        .slot-box {
+            flex: 1;
+            height: 50px;
+            background: linear-gradient(135deg, var(--success), var(--primary));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--dark);
+            font-family: 'Orbitron', sans-serif;
+            animation: popIn 0.5s ease-out backwards;
+            box-shadow: 0 3px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 25px;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 12px;
+            }
+
+            .grid-container {
+                min-width: 600px;
+            }
+        }
+
+        /* Scroll Animation */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>5G NR Frame Structure</h1>
+            <p class="subtitle">Physical Resources & Detailed Design Guide</p>
+        </header>
+
+        <!-- Section 1: Overview -->
+        <div class="section">
+            <h2>Frame Structure Big Picture</h2>
+            <p>5G divides time and frequency to transmit data efficiently. Understanding the hierarchy is crucial for mastering 5G NR physical layer design.</p>
+            
+            <div class="hierarchy-tree">
+                <div class="tree-level"><span class="highlight">Frame</span> (10 ms)</div>
+                <div class="tree-level"><span class="highlight">Subframe</span> (1 ms)</div>
+                <div class="tree-level"><span class="highlight">Slot</span> (depends on μ)</div>
+                <div class="tree-level"><span class="highlight">OFDM Symbols</span> (14 or 12)</div>
+                <div class="tree-level"><span class="highlight">Resource Elements (REs)</span></div>
+            </div>
+
+            <div class="info-box">
+                <strong>Key Principle:</strong> Everything you draw must follow this hierarchical order from top to bottom!
+            </div>
+        </div>
+
+        <!-- Section 2: General Time Reference -->
+        <div class="section">
+            <h2>4.1 General Time Reference</h2>
+            <p>All time durations in 5G NR are derived from a common reference time unit defined in <strong>TS 38.211</strong>.</p>
+            
+            <div class="info-box">
+                <strong>Key Idea:</strong><br>
+                ✓ 5G uses a common base time unit<br>
+                ✓ All symbols, slots, and frames are derived from it<br>
+                ✓ Ensures global synchronization across the network
+            </div>
+
+            <div class="warning-box">
+                <strong>For Your Design:</strong> You do NOT need to draw complex formulas. Simply state: "All time durations in 5G NR are derived from a common reference time unit."
+            </div>
+        </div>
+
+        <!-- Section 3: Numerologies -->
+        <div class="section animate-on-scroll">
+            <h2>4.2 Numerologies (MOST IMPORTANT)</h2>
+            
+            <h3>What is Numerology?</h3>
+            <p>Numerology defines the fundamental parameters that determine 5G performance characteristics:</p>
+            <ul style="margin-left: 30px; margin-bottom: 20px;">
+                <li>Subcarrier spacing</li>
+                <li>Slot duration</li>
+                <li>Latency vs coverage trade-off</li>
+            </ul>
+
+            <div class="formula-box">
+                Subcarrier Spacing = 15 × 2<sup>μ</sup> kHz
+            </div>
+
+            <h3>Supported Numerologies</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>μ (Mu)</th>
+                            <th>Subcarrier Spacing</th>
+                            <th>Slot Duration</th>
+                            <th>Usage Scenario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="mu-value">0</td>
+                            <td>15 kHz</td>
+                            <td>1 ms</td>
+                            <td>LTE-like, wide coverage</td>
+                        </tr>
+                        <tr>
+                            <td class="mu-value">1</td>
+                            <td>30 kHz</td>
+                            <td>0.5 ms</td>
+                            <td>Mid-band, balanced</td>
+                        </tr>
+                        <tr>
+                            <td class="mu-value">2</td>
+                            <td>60 kHz</td>
+                            <td>0.25 ms</td>
+                            <td>High capacity</td>
+                        </tr>
+                        <tr>
+                            <td class="mu-value">3</td>
+                            <td>120 kHz</td>
+                            <td>0.125 ms</td>
+                            <td>mmWave, ultra-low latency</td>
+                        </tr>
+                        <tr>
+                            <td class="mu-value">4+</td>
+                            <td>240+ kHz</td>
+                            <td>Very short</td>
+                            <td>FR2, special cases</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="warning-box">
+                <strong>DESIGN TIP:</strong> In your diagrams, clearly show μ = 0, 1, 2, 3... and illustrate how slot size decreases as μ increases!
+            </div>
+
+            <h3>Visual: Numerology Impact on Slot Duration</h3>
+            <div class="slots-visual">
+                <div class="mu-row">
+                    <div class="mu-label">μ = 0</div>
+                    <div class="slots-container">
+                        <div class="slot-box" style="animation-delay: 0.1s;">1 ms</div>
+                    </div>
+                </div>
+                <div class="mu-row">
+                    <div class="mu-label">μ = 1</div>
+                    <div class="slots-container">
+                        <div class="slot-box" style="animation-delay: 0.15s;">0.5 ms</div>
+                        <div class="slot-box" style="animation-delay: 0.2s;">0.5 ms</div>
+                    </div>
+                </div>
+                <div class="mu-row">
+                    <div class="mu-label">μ = 2</div>
+                    <div class="slots-container">
+                        <div class="slot-box" style="animation-delay: 0.25s;">0.25</div>
+                        <div class="slot-box" style="animation-delay: 0.3s;">0.25</div>
+                        <div class="slot-box" style="animation-delay: 0.35s;">0.25</div>
+                        <div class="slot-box" style="animation-delay: 0.4s;">0.25</div>
+                    </div>
+                </div>
+                <div class="mu-row">
+                    <div class="mu-label">μ = 3</div>
+                    <div class="slots-container">
+                        <div class="slot-box" style="animation-delay: 0.45s;">0.125</div>
+                        <div class="slot-box" style="animation-delay: 0.5s;">0.125</div>
+                        <div class="slot-box" style="animation-delay: 0.55s;">0.125</div>
+                        <div class="slot-box" style="animation-delay: 0.6s;">0.125</div>
+                        <div class="slot-box" style="animation-delay: 0.65s;">0.125</div>
+                        <div class="slot-box" style="animation-delay: 0.7s;">0.125</div>
+                        <div class="slot-box" style="animation-delay: 0.75s;">0.125</div>
+                        <div class="slot-box" style="animation-delay: 0.8s;">0.125</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Remember:</strong> Higher μ → More slots → Shorter slot duration → Lower latency
+            </div>
+        </div>
+
+        <!-- Section 4: Frame Structure -->
+        <div class="section animate-on-scroll">
+            <h2>4.3 Frame Structure</h2>
+            
+            <h3>4.3.1 Frames and Subframes</h3>
+            
+            <div class="info-box">
+                <strong>Frame Basics:</strong><br>
+                • Duration = 10 ms<br>
+                • Contains 10 subframes<br>
+                • Each subframe = 1 ms
+            </div>
+
+            <div class="frame-diagram">
+                <div class="frame-label">FRAME (10 ms)</div>
+                <div class="frame-container">
+                    <div class="subframe">SF0</div>
+                    <div class="subframe">SF1</div>
+                    <div class="subframe">SF2</div>
+                    <div class="subframe">SF3</div>
+                    <div class="subframe">SF4</div>
+                    <div class="subframe">SF5</div>
+                    <div class="subframe">SF6</div>
+                    <div class="subframe">SF7</div>
+                    <div class="subframe">SF8</div>
+                    <div class="subframe">SF9</div>
+                </div>
+                <div class="half-frame-label">
+                    <div>◀── Half-frame 0 (SF 0-4) ──▶</div>
+                    <div>◀── Half-frame 1 (SF 5-9) ──▶</div>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <strong>Timing Relationship:</strong> Uplink frame is time-advanced relative to downlink. This ensures signals arrive aligned at gNB and compensates for propagation delay.
+            </div>
+
+            <h3>4.3.2 Slots (Critical for Design)</h3>
+            
+            <div class="info-box">
+                <strong>Slot Basics:</strong><br>
+                • Slot contains OFDM symbols<br>
+                • Number of symbols depends on cyclic prefix (CP)<br>
+                • <strong>Normal CP:</strong> 14 OFDM symbols per slot<br>
+                • <strong>Extended CP:</strong> 12 OFDM symbols per slot
+            </div>
+
+            <h3>Slots per Subframe (Normal CP)</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>μ (Numerology)</th>
+                            <th>Slots per Subframe</th>
+                            <th>Total Slots in 10ms Frame</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="mu-value">0</td>
+                            <td>1</td>
+                            <td>10</td>
+                        </tr>
+                        <tr>
+                            <td class="mu-value">1</td>
+                            <td>2</td>
+                            <td>20</td>
+                        </tr>
+                        <tr>
+                            <td class="mu-value">2</td>
+                            <td>4</td>
+                            <td>40</td>
+                        </tr>
+                        <tr>
+                            <td class="mu-value">3</td>
+                            <td>8</td>
+                            <td>80</td>
+                        </tr>
+                        <tr>
+                            <td class="mu-value">4</td>
+                            <td>16</td>
+                            <td>160</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-box">
+                <strong>Key Relationship:</strong> Higher μ → More slots → Shorter slot duration
+            </div>
+        </div>
+
+        <!-- Section 5: PDCCH and PDSCH Locations -->
+        <div class="section animate-on-scroll">
+            <h2>PDCCH and PDSCH Locations (KEY EXPECTATION)</h2>
+            
+            <h3>Symbol Types Inside a Slot</h3>
+            <p>Each OFDM symbol in a slot can be designated as:</p>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color pdcch"></div>
+                    <span>🔵 Downlink (PDCCH - Control)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color pdsch"></div>
+                    <span>🟢 Downlink (PDSCH - Data)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color flexible"></div>
+                    <span>🟡 Flexible</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color uplink"></div>
+                    <span>🔴 Uplink</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color guard"></div>
+                    <span>⚫ Guard / Transition</span>
+                </div>
+            </div>
+
+            <h3>Inside ONE SLOT (14 Symbols - Normal CP)</h3>
+            <div class="slot-diagram">
+                <div class="slot-container">
+                    <div class="symbol pdcch">SYM 0<br>PDCCH</div>
+                    <div class="symbol pdcch">SYM 1<br>PDCCH</div>
+                    <div class="symbol pdsch">SYM 2<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 3<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 4<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 5<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 6<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 7<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 8<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 9<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 10<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 11<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 12<br>PDSCH</div>
+                    <div class="symbol pdsch">SYM 13<br>PDSCH</div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>PDCCH (Physical Downlink Control Channel):</strong><br>
+                • Located at the start of the slot<br>
+                • Inside CORESET (Control Resource Set)<br>
+                • Carries: Scheduling information, HARQ feedback, Modulation and coding info
+            </div>
+
+            <div class="info-box" style="border-left-color: var(--success);">
+                <strong>PDSCH (Physical Downlink Shared Channel):</strong><br>
+                • Located after PDCCH<br>
+                • Uses remaining symbols in the slot<br>
+                • Carries: User data, Paging messages, System information
+            </div>
+        </div>
+
+        <!-- Section 6: Complete Time-Frequency Grid -->
+        <div class="section animate-on-scroll">
+            <h2>Complete Time-Frequency Grid (FINAL DESIGN)</h2>
+            <p>This is the complete resource grid combining time domain (symbols) and frequency domain (subcarriers).</p>
+
+            <div class="resource-grid">
+                <div class="axis-label">TIME DOMAIN → (14 OFDM Symbols per Slot)</div>
+                <div class="grid-container">
+                    <!-- Row 1: Control -->
+                    <div class="grid-cell pdcch">PDCCH<br>Sym 0</div>
+                    <div class="grid-cell pdcch">PDCCH<br>Sym 1</div>
+                    <div class="grid-cell pdsch">PDSCH<br>Sym 2</div>
+                    <div class="grid-cell pdsch">PDSCH<br>Sym 3</div>
+                    <div class="grid-cell pdsch">PDSCH<br>Sym 4</div>
+                    <div class="grid-cell pdsch">PDSCH<br>Sym 5</div>
+                    <div class="grid-cell pdsch">PDSCH<br>Sym 6</div>
+                    <div class="grid-cell pdsch">PDSCH<br>Sym 7</div>
+                    <div class="grid-cell pdsch">PDSCH<br>Sym 8</div>
+                    <div class="grid-cell pdsch">PDSCH<br>Sym 9</div>
+                    <div class="grid-cell pdsch">PDSCH<br>Sym 10</div>
+                    <div class="grid-cell pdsch">PDSCH<br>Sym 11</div>
+                    <div class="grid-cell flexible">Flex<br>Sym 12</div>
+                    <div class="grid-cell uplink">UL<br>Sym 13</div>
+                </div>
+                <div class="axis-label" style="margin-top: 30px;">↑ FREQUENCY DOMAIN (Subcarriers in RBs)</div>
+            </div>
+
+            <div class="warning-box">
+                <strong>CRITICAL COLOR SCHEME FOR YOUR DESIGN:</strong><br>
+                🔵 <strong>Blue</strong> → PDCCH (Control)<br>
+                🟢 <strong>Green</strong> → PDSCH (Data)<br>
+                🟡 <strong>Yellow</strong> → Flexible symbols<br>
+                ⚫ <strong>Grey</strong> → Guard / Transition<br>
+                🔴 <strong>Red</strong> → UL (Uplink) symbols
+            </div>
+
+            <div class="info-box">
+                <strong>Key Points for Your Presentation:</strong><br>
+                1. Frame structure follows strict hierarchy<br>
+                2. Numerology (μ) determines slot duration and subcarrier spacing<br>
+                3. PDCCH always at the beginning of the slot for fast decoding<br>
+                4. PDSCH occupies remaining symbols for data transmission<br>
+                5. Flexible symbols enable dynamic TDD switching<br>
+                6. Resource grid is 2D: Time (symbols) × Frequency (subcarriers)
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer style="text-align: center; margin-top: 60px; padding: 30px; border-top: 2px solid var(--primary); color: var(--primary); font-family: 'Orbitron', sans-serif;">
+            <p style="font-size: 1.2em; margin-bottom: 10px;">5G NR Frame Structure & Physical Resources</p>
+            <p style="font-size: 0.9em; opacity: 0.7;">Based on 3GPP TS 38.211 Specifications</p>
+            <p style="font-size: 0.8em; margin-top: 20px; opacity: 0.5;">Interactive Educational Presentation</p>
+        </footer>
+    </div>
+
+    <script>
+        // Scroll animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.animate-on-scroll').forEach((element) => {
+            observer.observe(element);
+        });
+
+        // Interactive hover effects for educational purposes
+        document.querySelectorAll('.subframe').forEach((subframe, index) => {
+            subframe.addEventListener('click', () => {
+                alert(`Subframe ${index}: Duration = 1ms\nContains slots based on numerology μ`);
+            });
+        });
+
+        document.querySelectorAll('.symbol').forEach((symbol) => {
+            symbol.addEventListener('click', function() {
+                const text = this.textContent.trim();
+                if (text.includes('PDCCH')) {
+                    alert('PDCCH: Physical Downlink Control Channel\n• Carries scheduling and control information\n• Located in CORESET\n• Decoded first in the slot');
+                } else if (text.includes('PDSCH')) {
+                    alert('PDSCH: Physical Downlink Shared Channel\n• Carries user data\n• Occupies most of the slot\n• Scheduled by PDCCH');
+                } else if (text.includes('Flex')) {
+                    alert('Flexible Symbol\n• Can be configured as UL or DL\n• Enables dynamic TDD\n• Improves spectrum efficiency');
+                } else if (text.includes('UL')) {
+                    alert('Uplink Symbol\n• Reserved for uplink transmission\n• PUCCH or PUSCH\n• Time-advanced to compensate delay');
+                }
+            });
+        });
+
+        // Add dynamic effects
+        setInterval(() => {
+            const slots = document.querySelectorAll('.slot-box');
+            slots.forEach((slot, index) => {
+                setTimeout(() => {
+                    slot.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        slot.style.transform = 'scale(1)';
+                    }, 200);
+                }, index * 100);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

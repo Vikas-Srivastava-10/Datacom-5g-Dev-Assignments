@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G NR Physical Layer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Fira+Code:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d9ff;
+            --secondary: #0066ff;
+            --accent: #ff00ff;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff3366;
+            --dark-bg: #0a0e27;
+            --mid-bg: #151b3d;
+            --light-bg: #1f2847;
+            --text-primary: #e8f4f8;
+            --text-secondary: #8fa3bf;
+            --glow: 0 0 20px rgba(0, 217, 255, 0.5);
+            --glow-strong: 0 0 40px rgba(0, 217, 255, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #0d1128 50%, var(--dark-bg) 100%);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(0, 217, 255, 0.03) 50px, rgba(0, 217, 255, 0.03) 51px),
+                repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(0, 217, 255, 0.03) 50px, rgba(0, 217, 255, 0.03) 51px);
+            pointer-events: none;
+            z-index: 0;
+            animation: gridScroll 20s linear infinite;
+        }
+
+        @keyframes gridScroll {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 20px 40px;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        .subtitle {
+            font-family: 'Fira Code', monospace;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            letter-spacing: 3px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            font-family: 'Orbitron', sans-serif;
+            background: var(--mid-bg);
+            color: var(--text-secondary);
+            border: 2px solid transparent;
+            padding: 15px 35px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 217, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .tab-btn:hover::before {
+            left: 100%;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: var(--glow);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border-color: var(--primary);
+            box-shadow: var(--glow-strong);
+        }
+
+        .mode-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0 40px;
+        }
+
+        .mode-btn {
+            font-family: 'Fira Code', monospace;
+            background: var(--light-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--text-secondary);
+            padding: 10px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .mode-btn.active {
+            background: var(--success);
+            color: var(--dark-bg);
+            border-color: var(--success);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .module {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .module.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 1200px) {
+            .split-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(31, 40, 71, 0.7);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--glow);
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::before {
+            content: '▸';
+            color: var(--accent);
+            font-size: 1.8rem;
+        }
+
+        .svg-container {
+            background: rgba(10, 14, 39, 0.5);
+            padding: 20px;
+            border: 1px solid rgba(0, 217, 255, 0.2);
+            margin: 20px 0;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .controls {
+            background: var(--mid-bg);
+            padding: 20px;
+            border-left: 3px solid var(--primary);
+            margin: 20px 0;
+        }
+
+        .control-group {
+            margin: 15px 0;
+        }
+
+        .control-group label {
+            display: block;
+            font-family: 'Fira Code', monospace;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: var(--light-bg);
+            outline: none;
+            border-radius: 3px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: var(--glow);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            background: var(--light-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--text-secondary);
+            font-family: 'Fira Code', monospace;
+            cursor: pointer;
+        }
+
+        .code-panel {
+            background: #0d1117;
+            padding: 20px;
+            border-left: 3px solid var(--success);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .code-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .code-panel::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        .code-panel::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .code-line {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+
+        .code-comment { color: #6a9955; }
+        .code-keyword { color: #569cd6; }
+        .code-function { color: #dcdcaa; }
+        .code-string { color: #ce9178; }
+        .code-number { color: #b5cea8; }
+
+        .output-panel {
+            background: rgba(10, 14, 39, 0.8);
+            padding: 20px;
+            border-left: 3px solid var(--warning);
+            margin: 20px 0;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+        }
+
+        .output-row {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 2px solid var(--text-secondary);
+        }
+
+        .output-label {
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .bit-stream {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .bit {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light-bg);
+            border: 1px solid var(--text-secondary);
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .bit.parity {
+            background: var(--success);
+            color: var(--dark-bg);
+            border-color: var(--success);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .bit.punctured {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+            text-decoration: line-through;
+        }
+
+        .bit.repeated {
+            background: var(--warning);
+            color: var(--dark-bg);
+            border-color: var(--warning);
+        }
+
+        .bit.active {
+            transform: scale(1.2);
+            box-shadow: var(--glow);
+        }
+
+        .animation-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: var(--glow);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-strong);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--mid-bg);
+            border: 2px solid var(--primary);
+            box-shadow: none;
+        }
+
+        .network-animation {
+            background: rgba(10, 14, 39, 0.5);
+            padding: 40px;
+            margin: 30px 0;
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            min-height: 300px;
+        }
+
+        .explanation {
+            background: linear-gradient(135deg, rgba(0, 102, 255, 0.1), rgba(0, 217, 255, 0.1));
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            margin: 20px 0;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .explanation.simple {
+            border-left-color: var(--success);
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 217, 255, 0.1));
+        }
+
+        .explanation.engineer {
+            border-left-color: var(--warning);
+            background: linear-gradient(135deg, rgba(255, 170, 0, 0.1), rgba(255, 51, 102, 0.1));
+        }
+
+        .theory-section {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(0, 217, 255, 0.05));
+            border: 2px solid var(--success);
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .theory-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .theory-section p {
+            line-height: 1.9;
+            font-size: 1rem;
+            text-align: justify;
+        }
+
+        .theory-section strong {
+            font-weight: 700;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: var(--mid-bg);
+            padding: 20px;
+            border-left: 3px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-left-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .subtitle { font-size: 0.9rem; }
+            .tab-btn { padding: 12px 20px; font-size: 0.85rem; }
+            .split-layout { grid-template-columns: 1fr; }
+            .animation-controls { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .animating {
+            animation: pulse 1s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>5G NR PHYSICAL LAYER</h1>
+            <p class="subtitle"></p>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('channel-coding')">Channel Coding (LDPC)</button>
+            <button class="tab-btn" onclick="switchTab('rate-matching')">Rate Matching</button>
+            <button class="tab-btn" onclick="switchTab('code-block-concat')">Code Block Concatenation</button>
+        </div>
+
+        <div class="mode-toggle">
+            <button class="mode-btn active" onclick="switchMode('student')">🎓 Student Mode</button>
+            <button class="mode-btn" onclick="switchMode('engineer')">🔧 Engineer Mode</button>
+        </div>
+
+        <div id="channel-coding" class="module active">
+            <div class="explanation simple" id="cc-explanation-simple">
+                <strong>Layman:</strong> Channel coding adds redundancy to data to protect it from errors during transmission. Think of it like adding error-correction codes to make sure your message gets through even if some bits get corrupted.
+            </div>
+            <div class="explanation engineer" id="cc-explanation-engineer" style="display:none;">
+                <strong>Technical Terms:</strong> 5G NR uses LDPC codes with CRC attachment, code block segmentation, and LDPC encoding generating systematic and parity bits based on sparse parity-check matrices.
+            </div>
+
+            <div class="split-layout">
+                <div class="card">
+                    <h2 class="card-title">Architecture & Signal Flow</h2>
+                    <div class="svg-container">
+                        <svg viewBox="0 0 600 500">
+                            <rect x="50" y="50" width="150" height="60" fill="#1f2847" stroke="#00d9ff" stroke-width="2"/>
+                            <text x="125" y="85" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="14">Transport Block</text>
+                            
+                            <rect x="50" y="150" width="150" height="60" fill="#1f2847" stroke="#00ff88" stroke-width="2"/>
+                            <text x="125" y="185" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="14">CRC Attachment</text>
+                            
+                            <rect x="50" y="250" width="150" height="60" fill="#1f2847" stroke="#ffaa00" stroke-width="2"/>
+                            <text x="125" y="285" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="12">Code Block Segment</text>
+                            
+                            <rect x="50" y="350" width="150" height="60" fill="#1f2847" stroke="#ff00ff" stroke-width="2"/>
+                            <text x="125" y="385" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="14">LDPC Encoder</text>
+                            
+                            <rect x="400" y="200" width="150" height="100" fill="#1f2847" stroke="#00d9ff" stroke-width="2"/>
+                            <text x="475" y="235" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="14">Encoded Output</text>
+                            <text x="475" y="255" fill="#00ff88" text-anchor="middle" font-family="Fira Code" font-size="10">Systematic</text>
+                            <text x="475" y="275" fill="#ff00ff" text-anchor="middle" font-family="Fira Code" font-size="10">Parity</text>
+                            
+                            <defs>
+                                <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                    <polygon points="0 0,10 3,0 6" fill="#00d9ff"/>
+                                </marker>
+                            </defs>
+                            <path d="M125 110 L125 150" stroke="#00d9ff" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M125 210 L125 250" stroke="#00d9ff" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M125 310 L125 350" stroke="#00d9ff" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M200 380 L400 250" stroke="#00d9ff" stroke-width="2" marker-end="url(#arrow)"/>
+                        </svg>
+                    </div>
+                    <div class="animation-controls">
+                        <button class="btn" onclick="startChannelCodingAnimation()">▶ Start</button>
+                        <button class="btn btn-secondary" onclick="resetChannelCodingAnimation()">↻ Reset</button>
+                    </div>
+                    <div class="stats-panel">
+                        <div class="stat-card"><div class="stat-value">1024</div><div class="stat-label">Input Bits</div></div>
+                        <div class="stat-card"><div class="stat-value">512</div><div class="stat-label">Parity Bits</div></div>
+                        <div class="stat-card"><div class="stat-value">0.67</div><div class="stat-label">Code Rate</div></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card">
+                        <h2 class="card-title">C++ Code</h2>
+                        <div class="code-panel">
+<div class="code-line"><span class="code-comment">// LDPC Channel Coding</span></div>
+<div class="code-line"><span class="code-keyword">#include</span> <span class="code-string">&lt;vector&gt;</span></div>
+<div class="code-line"></div>
+<div class="code-line"><span class="code-keyword">void</span> <span class="code-function">attachCRC</span>(std::vector&lt;<span class="code-keyword">uint8_t</span>&gt;&amp; data) {</div>
+<div class="code-line">    <span class="code-comment">// CRC-24A calculation</span></div>
+<div class="code-line">    <span class="code-keyword">uint32_t</span> crc = <span class="code-number">0xFFFFFF</span>;</div>
+<div class="code-line">    <span class="code-keyword">for</span> (<span class="code-keyword">auto</span> byte : data) {</div>
+<div class="code-line">        crc ^= (byte &lt;&lt; <span class="code-number">16</span>);</div>
+<div class="code-line">        <span class="code-keyword">for</span> (<span class="code-keyword">int</span> i=<span class="code-number">0</span>; i&lt;<span class="code-number">8</span>; i++) {</div>
+<div class="code-line">            <span class="code-keyword">if</span> (crc &amp; <span class="code-number">0x800000</span>)</div>
+<div class="code-line">                crc = (crc &lt;&lt; <span class="code-number">1</span>) ^ <span class="code-number">0x1864CFB</span>;</div>
+<div class="code-line">            <span class="code-keyword">else</span> crc &lt;&lt;= <span class="code-number">1</span>;</div>
+<div class="code-line">        }</div>
+<div class="code-line">    }</div>
+<div class="code-line">    data.push_back((crc&gt;&gt;<span class="code-number">16</span>)&<span class="code-number">0xFF</span>);</div>
+<div class="code-line">    data.push_back((crc&gt;&gt;<span class="code-number">8</span>)&<span class="code-number">0xFF</span>);</div>
+<div class="code-line">    data.push_back(crc&<span class="code-number">0xFF</span>);</div>
+<div class="code-line">}</div>
+<div class="code-line"></div>
+<div class="code-line"><span class="code-comment">// LDPC Encoding</span></div>
+<div class="code-line">std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; <span class="code-function">ldpcEncode</span>(</div>
+<div class="code-line">    std::vector&lt;<span class="code-keyword">uint8_t</span>&gt;&amp; info, <span class="code-keyword">double</span> rate) {</div>
+<div class="code-line">    <span class="code-keyword">int</span> K = info.size() * <span class="code-number">8</span>;</div>
+<div class="code-line">    <span class="code-keyword">int</span> N = K / rate;</div>
+<div class="code-line">    <span class="code-keyword">int</span> P = N - K;</div>
+<div class="code-line">    std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; out = info;</div>
+<div class="code-line">    <span class="code-keyword">for</span> (<span class="code-keyword">int</span> i=<span class="code-number">0</span>; i&lt;P/<span class="code-number">8</span>; i++) {</div>
+<div class="code-line">        <span class="code-keyword">uint8_t</span> p = <span class="code-number">0</span>;</div>
+<div class="code-line">        <span class="code-keyword">for</span> (<span class="code-keyword">auto</span> b : info) p ^= b;</div>
+<div class="code-line">        out.push_back(p);</div>
+<div class="code-line">    }</div>
+<div class="code-line">    <span class="code-keyword">return</span> out;</div>
+<div class="code-line">}</div>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-top:20px;">
+                        <h2 class="card-title">Live Output</h2>
+                        <div class="output-panel">
+                            <div class="output-row">
+                                <div class="output-label">📥 Input Bits:</div>
+                                <div class="bit-stream" id="cc-input-stream"></div>
+                            </div>
+                            <div class="output-row">
+                                <div class="output-label">📤 Encoded Output:</div>
+                                <div class="bit-stream" id="cc-output-stream"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="rate-matching" class="module">
+            <div class="explanation simple" id="rm-explanation-simple">
+                <strong>Layman:</strong> Rate matching adjusts coded bits to fit transmission resources - like packing a suitcase, removing or duplicating items to fit the space.
+            </div>
+            <div class="explanation engineer" id="rm-explanation-engineer" style="display:none;">
+                <strong>Technical Terms:</strong> Rate matching uses circular buffer with puncturing/repetition and RV parameter for HARQ retransmissions.
+            </div>
+
+            <div class="split-layout">
+                <div class="card">
+                    <h2 class="card-title">Architecture</h2>
+                    <div class="svg-container">
+                        <svg viewBox="0 0 600 400">
+                            <rect x="50" y="50" width="150" height="60" fill="#1f2847" stroke="#00d9ff" stroke-width="2"/>
+                            <text x="125" y="85" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="14">LDPC Output</text>
+                            
+                            <circle cx="125" cy="200" r="70" fill="none" stroke="#ff00ff" stroke-width="2" stroke-dasharray="5,5"/>
+                            <text x="125" y="205" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="13">Circular Buffer</text>
+                            
+                            <rect x="300" y="150" width="120" height="50" fill="#1f2847" stroke="#ff3366" stroke-width="2"/>
+                            <text x="360" y="180" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="12">Puncturing</text>
+                            
+                            <rect x="450" y="180" width="130" height="60" fill="#1f2847" stroke="#00d9ff" stroke-width="2"/>
+                            <text x="515" y="215" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="14">Rate Matched</text>
+                            
+                            <path d="M125 110 L125 130" stroke="#00d9ff" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M195 200 L300 175" stroke="#00d9ff" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M420 175 L450 210" stroke="#00d9ff" stroke-width="2" marker-end="url(#arrow)"/>
+                        </svg>
+                    </div>
+                    <div class="controls">
+                        <div class="control-group">
+                            <label>Code Rate: <span id="rate-val">0.5</span></label>
+                            <input type="range" min="0.2" max="0.9" step="0.1" value="0.5" oninput="updateRate(this.value)">
+                        </div>
+                        <div class="control-group">
+                            <label>RV:</label>
+                            <select onchange="updateRV(this.value)">
+                                <option value="0">RV 0</option>
+                                <option value="1">RV 1</option>
+                                <option value="2">RV 2</option>
+                                <option value="3">RV 3</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="animation-controls">
+                        <button class="btn" onclick="startRateMatchingAnimation()">▶ Start</button>
+                        <button class="btn btn-secondary" onclick="resetRateMatchingAnimation()">↻ Reset</button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card">
+                        <h2 class="card-title">C++ Code</h2>
+                        <div class="code-panel">
+<div class="code-line"><span class="code-comment">// Rate Matching</span></div>
+<div class="code-line"><span class="code-keyword">class</span> <span class="code-function">CircularBuffer</span> {</div>
+<div class="code-line">    std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; buf;</div>
+<div class="code-line"><span class="code-keyword">public</span>:</div>
+<div class="code-line">    <span class="code-function">CircularBuffer</span>(std::vector&lt;<span class="code-keyword">uint8_t</span>&gt;&amp; enc) : buf(enc) {}</div>
+<div class="code-line">    std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; <span class="code-function">read</span>(<span class="code-keyword">int</span> start, <span class="code-keyword">int</span> n) {</div>
+<div class="code-line">        std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; out;</div>
+<div class="code-line">        <span class="code-keyword">for</span> (<span class="code-keyword">int</span> i=<span class="code-number">0</span>; i&lt;n; i++)</div>
+<div class="code-line">            out.push_back(buf[(start+i)%buf.size()]);</div>
+<div class="code-line">        <span class="code-keyword">return</span> out;</div>
+<div class="code-line">    }</div>
+<div class="code-line">};</div>
+<div class="code-line"></div>
+<div class="code-line"><span class="code-comment">// Puncturing</span></div>
+<div class="code-line">std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; <span class="code-function">puncture</span>(</div>
+<div class="code-line">    std::vector&lt;<span class="code-keyword">uint8_t</span>&gt;&amp; in, <span class="code-keyword">int</span> target) {</div>
+<div class="code-line">    <span class="code-keyword">if</span> (in.size() &lt;= target) <span class="code-keyword">return</span> in;</div>
+<div class="code-line">    std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; out;</div>
+<div class="code-line">    <span class="code-keyword">double</span> r = (<span class="code-keyword">double</span>)target/in.size();</div>
+<div class="code-line">    <span class="code-keyword">for</span> (<span class="code-keyword">int</span> i=<span class="code-number">0</span>; i&lt;in.size() &amp;&amp; out.size()&lt;target; i++)</div>
+<div class="code-line">        <span class="code-keyword">if</span> (i*r &lt; out.size()+<span class="code-number">1</span>) out.push_back(in[i]);</div>
+<div class="code-line">    <span class="code-keyword">return</span> out;</div>
+<div class="code-line">}</div>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-top:20px;">
+                        <h2 class="card-title">Live Output</h2>
+                        <div class="output-panel">
+                            <div class="output-row">
+                                <div class="output-label">📥 Input:</div>
+                                <div class="bit-stream" id="rm-input-stream"></div>
+                            </div>
+                            <div class="output-row">
+                                <div class="output-label">📤 Output:</div>
+                                <div class="bit-stream" id="rm-output-stream"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="code-block-concat" class="module">
+            <div class="explanation simple" id="cbc-explanation-simple">
+                <strong>Layman:</strong> Concatenation combines multiple blocks into one stream for transmission, then separates them at the receiver.
+            </div>
+            <div class="explanation engineer" id="cbc-explanation-engineer" style="display:none;">
+                <strong>Technical Terms:</strong> Code blocks concatenated serially at gNodeB, separated at UE for parallel LDPC decoding.
+            </div>
+
+            <div class="split-layout">
+                <div class="card">
+                    <h2 class="card-title">Architecture</h2>
+                    <div class="svg-container">
+                        <svg viewBox="0 0 700 500">
+                            <text x="100" y="30" fill="#00d9ff" font-family="Orbitron" font-size="14">gNodeB</text>
+                            <rect x="30" y="60" width="100" height="50" fill="#1f2847" stroke="#00ff88" stroke-width="2"/>
+                            <text x="80" y="90" fill="#e8f4f8" text-anchor="middle" font-size="12">Block 1</text>
+                            <rect x="30" y="130" width="100" height="50" fill="#1f2847" stroke="#ffaa00" stroke-width="2"/>
+                            <text x="80" y="160" fill="#e8f4f8" text-anchor="middle" font-size="12">Block 2</text>
+                            <rect x="30" y="200" width="100" height="50" fill="#1f2847" stroke="#ff00ff" stroke-width="2"/>
+                            <text x="80" y="230" fill="#e8f4f8" text-anchor="middle" font-size="12">Block 3</text>
+                            
+                            <rect x="200" y="120" width="130" height="70" fill="#1f2847" stroke="#00d9ff" stroke-width="2"/>
+                            <text x="265" y="160" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="13">Concatenate</text>
+                            
+                            <rect x="380" y="140" width="120" height="40" fill="none" stroke="#00d9ff" stroke-width="2" stroke-dasharray="5,5"/>
+                            <text x="440" y="165" fill="#00d9ff" text-anchor="middle" font-size="12">Air Interface</text>
+                            
+                            <text x="600" y="30" fill="#ff00ff" font-family="Orbitron" font-size="14">UE</text>
+                            <rect x="520" y="120" width="130" height="70" fill="#1f2847" stroke="#ff3366" stroke-width="2"/>
+                            <text x="585" y="160" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="13">Separate</text>
+                            
+                            <rect x="550" y="250" width="100" height="50" fill="#1f2847" stroke="#00ff88" stroke-width="2"/>
+                            <text x="600" y="280" fill="#e8f4f8" text-anchor="middle" font-size="12">Block 1</text>
+                            <rect x="550" y="320" width="100" height="50" fill="#1f2847" stroke="#ffaa00" stroke-width="2"/>
+                            <text x="600" y="350" fill="#e8f4f8" text-anchor="middle" font-size="12">Block 2</text>
+                            <rect x="550" y="390" width="100" height="50" fill="#1f2847" stroke="#ff00ff" stroke-width="2"/>
+                            <text x="600" y="420" fill="#e8f4f8" text-anchor="middle" font-size="12">Block 3</text>
+                            
+                            <path d="M130 85 L200 155" stroke="#00ff88" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M130 155 L200 155" stroke="#ffaa00" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M130 225 L200 155" stroke="#ff00ff" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M330 155 L380 160" stroke="#00d9ff" stroke-width="3" marker-end="url(#arrow)"/>
+                            <path d="M500 160 L520 155" stroke="#00d9ff" stroke-width="3" marker-end="url(#arrow)"/>
+                            <path d="M585 190 L600 250" stroke="#00ff88" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M585 190 L600 345" stroke="#ffaa00" stroke-width="2" marker-end="url(#arrow)"/>
+                            <path d="M585 190 L600 415" stroke="#ff00ff" stroke-width="2" marker-end="url(#arrow)"/>
+                        </svg>
+                    </div>
+                    <div class="animation-controls">
+                        <button class="btn" onclick="startConcatAnimation()">▶ Start</button>
+                        <button class="btn btn-secondary" onclick="resetConcatAnimation()">↻ Reset</button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card">
+                        <h2 class="card-title">C++ Code</h2>
+                        <div class="code-panel">
+<div class="code-line"><span class="code-comment">// Code Block Concatenation</span></div>
+<div class="code-line"><span class="code-keyword">struct</span> CodeBlock {</div>
+<div class="code-line">    <span class="code-keyword">int</span> id;</div>
+<div class="code-line">    std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; data;</div>
+<div class="code-line">};</div>
+<div class="code-line"></div>
+<div class="code-line"><span class="code-comment">// Concatenate blocks</span></div>
+<div class="code-line">std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; <span class="code-function">concat</span>(</div>
+<div class="code-line">    std::vector&lt;CodeBlock&gt;&amp; blocks) {</div>
+<div class="code-line">    std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; out;</div>
+<div class="code-line">    <span class="code-keyword">for</span> (<span class="code-keyword">auto</span>&amp; b : blocks)</div>
+<div class="code-line">        out.insert(out.end(), b.data.begin(), b.data.end());</div>
+<div class="code-line">    <span class="code-keyword">return</span> out;</div>
+<div class="code-line">}</div>
+<div class="code-line"></div>
+<div class="code-line"><span class="code-comment">// Separate blocks</span></div>
+<div class="code-line">std::vector&lt;CodeBlock&gt; <span class="code-function">separate</span>(</div>
+<div class="code-line">    std::vector&lt;<span class="code-keyword">uint8_t</span>&gt;&amp; stream,</div>
+<div class="code-line">    std::vector&lt;<span class="code-keyword">int</span>&gt;&amp; sizes) {</div>
+<div class="code-line">    std::vector&lt;CodeBlock&gt; blocks;</div>
+<div class="code-line">    <span class="code-keyword">int</span> off = <span class="code-number">0</span>;</div>
+<div class="code-line">    <span class="code-keyword">for</span> (<span class="code-keyword">int</span> i=<span class="code-number">0</span>; i&lt;sizes.size(); i++) {</div>
+<div class="code-line">        std::vector&lt;<span class="code-keyword">uint8_t</span>&gt; d(</div>
+<div class="code-line">            stream.begin()+off,</div>
+<div class="code-line">            stream.begin()+off+sizes[i]);</div>
+<div class="code-line">        blocks.push_back({i, d});</div>
+<div class="code-line">        off += sizes[i];</div>
+<div class="code-line">    }</div>
+<div class="code-line">    <span class="code-keyword">return</span> blocks;</div>
+<div class="code-line">}</div>
+                        </div>
+                    </div>
+                    <div class="card" style="margin-top:20px;">
+                        <h2 class="card-title">Live Output</h2>
+                        <div class="output-panel">
+                            <div class="output-row">
+                                <div class="output-label">📦 Block 1:</div>
+                                <div class="bit-stream" id="cbc-b1"></div>
+                            </div>
+                            <div class="output-row">
+                                <div class="output-label">📦 Block 2:</div>
+                                <div class="bit-stream" id="cbc-b2"></div>
+                            </div>
+                            <div class="output-row">
+                                <div class="output-label">📦 Block 3:</div>
+                                <div class="bit-stream" id="cbc-b3"></div>
+                            </div>
+                            <div class="output-row">
+                                <div class="output-label">📡 Concatenated:</div>
+                                <div class="bit-stream" id="cbc-concat"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="network-animation">
+            <h2 style="font-family:Orbitron;color:var(--primary);text-align:center;margin-bottom:30px;">🌐 Live 5G NR Physical Layer Processing Flow</h2>
+            
+            <div class="theory-section">
+                <h3 style="font-family:Orbitron;color:var(--success);margin-bottom:15px;">📖 Understanding Physical Layer Processing (Layman's Terms)</h3>
+                <p style="line-height:1.8;color:var(--text-primary);margin-bottom:15px;">
+                    Imagine you're sending a precious package across the world. You wouldn't just throw it in the mail as-is, right? You'd wrap it carefully, add bubble wrap for protection, put it in a sturdy box, add a shipping label, and maybe even insure it. That's exactly what 5G's physical layer does with your data! When you send a message, stream a video, or make a video call, your smartphone (the UE - User Equipment) and the cell tower (gNodeB - next Generation NodeB) work together to prepare your data for its journey through the air. The physical layer is like a sophisticated packaging department that ensures your data arrives intact, even if the wireless channel is noisy or crowded.
+                </p>
+                <p style="line-height:1.8;color:var(--text-primary);">
+                    Here's the journey: First, your data gets a special error-detection code attached (like a security seal) through <strong style="color:var(--primary);">CRC Attachment</strong>. Then, if it's too large, it's divided into manageable chunks through <strong style="color:var(--warning);">Code Block Segmentation</strong>. Next comes the magic of <strong style="color:var(--success);">LDPC Encoding</strong> - this is like adding redundant information so that even if some data gets corrupted during transmission (like a few bubble wraps popping), the receiver can still figure out what the original message was. Then, <strong style="color:var(--accent);">Rate Matching</strong> adjusts the amount of data to perfectly fit the available radio resources (like adjusting package size to fit the delivery truck). Finally, all the code blocks are <strong style="color:var(--secondary);">Concatenated</strong> into a single stream, modulated onto radio waves, and transmitted through the air at incredible speeds! At the receiving end, the process reverses - the UE separates, decodes, checks for errors, and delivers your pristine data. All of this happens in milliseconds!
+                </p>
+            </div>
+
+            <div style="margin-top:30px;background:rgba(10,14,39,0.7);padding:30px;border:1px solid rgba(0,217,255,0.3);">
+                <svg viewBox="0 0 1000 600" style="width:100%;" id="network-svg">
+                    <!-- Background decorative elements -->
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#00d9ff;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#0066ff;stop-opacity:0.8" />
+                        </linearGradient>
+                        <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#00ff88;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#00d9ff;stop-opacity:0.8" />
+                        </linearGradient>
+                        <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#ffaa00;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#ff00ff;stop-opacity:0.8" />
+                        </linearGradient>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <!-- gNodeB Tower -->
+                    <g id="gnodeb-detailed">
+                        <rect x="50" y="200" width="80" height="120" fill="#1f2847" stroke="#00d9ff" stroke-width="3" rx="5"/>
+                        <rect x="65" y="215" width="50" height="90" fill="#0a0e27" stroke="#00ff88" stroke-width="1"/>
+                        
+                        <!-- Tower top -->
+                        <polygon points="90,140 50,200 130,200" fill="url(#grad1)" stroke="#00d9ff" stroke-width="2"/>
+                        <circle cx="90" cy="160" r="8" fill="#00ff88" opacity="0.8">
+                            <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        
+                        <!-- Antenna elements -->
+                        <line x1="90" y1="140" x2="90" y2="120" stroke="#00d9ff" stroke-width="3"/>
+                        <circle cx="90" cy="115" r="5" fill="#ff00ff">
+                            <animate attributeName="r" values="5;8;5" dur="1.5s" repeatCount="indefinite"/>
+                        </circle>
+                        
+                        <!-- Signal waves -->
+                        <path d="M 130 180 Q 160 180 180 160" fill="none" stroke="#00d9ff" stroke-width="2" opacity="0.4">
+                            <animate attributeName="opacity" values="0;0.7;0" dur="2s" repeatCount="indefinite"/>
+                        </path>
+                        <path d="M 130 200 Q 170 200 200 180" fill="none" stroke="#00d9ff" stroke-width="2" opacity="0.4">
+                            <animate attributeName="opacity" values="0;0.7;0" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+                        </path>
+                        <path d="M 130 220 Q 180 220 210 200" fill="none" stroke="#00d9ff" stroke-width="2" opacity="0.4">
+                            <animate attributeName="opacity" values="0;0.7;0" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+                        </path>
+                        
+                        <text x="90" y="340" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="16" font-weight="700">gNodeB</text>
+                        <text x="90" y="360" fill="#8fa3bf" text-anchor="middle" font-family="Fira Code" font-size="11">Base Station</text>
+                    </g>
+
+                    <!-- Processing Stages in the middle -->
+                    <g id="processing-stages">
+                        <!-- Stage 1: CRC -->
+                        <rect x="250" y="80" width="140" height="50" fill="#1f2847" stroke="#00ff88" stroke-width="2" rx="5" id="stage-crc"/>
+                        <text x="320" y="110" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="13">CRC Attach</text>
+                        <circle cx="230" cy="105" r="4" fill="#00ff88" id="indicator-crc">
+                            <animate attributeName="opacity" values="0;1;0" dur="6s" repeatCount="indefinite"/>
+                        </circle>
+
+                        <!-- Stage 2: Segmentation -->
+                        <rect x="250" y="150" width="140" height="50" fill="#1f2847" stroke="#ffaa00" stroke-width="2" rx="5" id="stage-seg"/>
+                        <text x="320" y="180" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="13">CB Segment</text>
+                        <circle cx="230" cy="175" r="4" fill="#ffaa00" id="indicator-seg">
+                            <animate attributeName="opacity" values="0;1;0" dur="6s" begin="1s" repeatCount="indefinite"/>
+                        </circle>
+
+                        <!-- Stage 3: LDPC -->
+                        <rect x="250" y="220" width="140" height="50" fill="#1f2847" stroke="#ff00ff" stroke-width="2" rx="5" id="stage-ldpc"/>
+                        <text x="320" y="250" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="13">LDPC Encode</text>
+                        <circle cx="230" cy="245" r="4" fill="#ff00ff" id="indicator-ldpc">
+                            <animate attributeName="opacity" values="0;1;0" dur="6s" begin="2s" repeatCount="indefinite"/>
+                        </circle>
+
+                        <!-- Stage 4: Rate Matching -->
+                        <rect x="250" y="290" width="140" height="50" fill="#1f2847" stroke="#ff3366" stroke-width="2" rx="5" id="stage-rm"/>
+                        <text x="320" y="320" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="13">Rate Match</text>
+                        <circle cx="230" cy="315" r="4" fill="#ff3366" id="indicator-rm">
+                            <animate attributeName="opacity" values="0;1;0" dur="6s" begin="3s" repeatCount="indefinite"/>
+                        </circle>
+
+                        <!-- Stage 5: Concatenation -->
+                        <rect x="250" y="360" width="140" height="50" fill="#1f2847" stroke="#00d9ff" stroke-width="2" rx="5" id="stage-concat"/>
+                        <text x="320" y="390" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="13">Concatenate</text>
+                        <circle cx="230" cy="385" r="4" fill="#00d9ff" id="indicator-concat">
+                            <animate attributeName="opacity" values="0;1;0" dur="6s" begin="4s" repeatCount="indefinite"/>
+                        </circle>
+                    </g>
+
+                    <!-- Air Interface Channel -->
+                    <g id="air-interface">
+                        <rect x="450" y="200" width="180" height="120" fill="none" stroke="#00d9ff" stroke-width="3" stroke-dasharray="10,5" rx="10"/>
+                        <text x="540" y="225" fill="#00d9ff" text-anchor="middle" font-family="Orbitron" font-size="16" font-weight="700">Wireless Channel</text>
+                        <text x="540" y="245" fill="#8fa3bf" text-anchor="middle" font-family="Fira Code" font-size="10">Physical Layer</text>
+                        
+                        <!-- Frequency bands -->
+                        <text x="540" y="270" fill="#00ff88" text-anchor="middle" font-family="Fira Code" font-size="9">Sub-6 GHz / mmWave</text>
+                        
+                        <!-- OFDM symbols -->
+                        <g id="ofdm-symbols">
+                            <rect x="470" y="280" width="15" height="25" fill="#00d9ff" opacity="0.3">
+                                <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="490" y="280" width="15" height="25" fill="#00ff88" opacity="0.3">
+                                <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1s" begin="0.1s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="510" y="280" width="15" height="25" fill="#ffaa00" opacity="0.3">
+                                <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1s" begin="0.2s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="530" y="280" width="15" height="25" fill="#ff00ff" opacity="0.3">
+                                <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1s" begin="0.3s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="550" y="280" width="15" height="25" fill="#ff3366" opacity="0.3">
+                                <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1s" begin="0.4s" repeatCount="indefinite"/>
+                            </rect>
+                            <rect x="570" y="280" width="15" height="25" fill="#00d9ff" opacity="0.3">
+                                <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1s" begin="0.5s" repeatCount="indefinite"/>
+                            </rect>
+                        </g>
+                        
+                        <!-- Signal strength indicator -->
+                        <path d="M 500 295 L 520 295 L 530 290 L 540 295 L 550 285 L 560 295 L 580 295" 
+                              fill="none" stroke="#00ff88" stroke-width="2" opacity="0.6">
+                            <animate attributeName="d" 
+                                     values="M 500 295 L 520 295 L 530 290 L 540 295 L 550 285 L 560 295 L 580 295;
+                                             M 500 295 L 520 290 L 530 295 L 540 285 L 550 295 L 560 290 L 580 295;
+                                             M 500 295 L 520 295 L 530 290 L 540 295 L 550 285 L 560 295 L 580 295" 
+                                     dur="2s" repeatCount="indefinite"/>
+                        </path>
+                    </g>
+
+                    <!-- UE Device -->
+                    <g id="ue-detailed">
+                        <rect x="720" y="220" width="70" height="100" fill="#1f2847" stroke="#ff00ff" stroke-width="3" rx="10"/>
+                        <rect x="730" y="230" width="50" height="70" fill="#0a0e27" stroke="#00d9ff" stroke-width="2" rx="3"/>
+                        
+                        <!-- Screen content -->
+                        <rect x="735" y="235" width="40" height="25" fill="#00d9ff" opacity="0.3"/>
+                        <rect x="735" y="265" width="40" height="5" fill="#00ff88" opacity="0.5"/>
+                        <rect x="735" y="275" width="40" height="5" fill="#ffaa00" opacity="0.5"/>
+                        <rect x="735" y="285" width="40" height="5" fill="#ff00ff" opacity="0.5"/>
+                        
+                        <!-- Antenna -->
+                        <circle cx="755" cy="215" r="6" fill="none" stroke="#ff00ff" stroke-width="2">
+                            <animate attributeName="r" values="6;10;6" dur="2s" repeatCount="indefinite"/>
+                            <animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        
+                        <!-- Signal reception waves -->
+                        <path d="M 720 240 Q 690 240 670 220" fill="none" stroke="#ff00ff" stroke-width="2" opacity="0.4">
+                            <animate attributeName="opacity" values="0;0.7;0" dur="2s" repeatCount="indefinite"/>
+                        </path>
+                        <path d="M 720 260 Q 680 260 650 240" fill="none" stroke="#ff00ff" stroke-width="2" opacity="0.4">
+                            <animate attributeName="opacity" values="0;0.7;0" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+                        </path>
+                        
+                        <text x="755" y="340" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="16" font-weight="700">UE</text>
+                        <text x="755" y="360" fill="#8fa3bf" text-anchor="middle" font-family="Fira Code" font-size="11">User Device</text>
+                    </g>
+
+                    <!-- Data Packets with detailed labeling -->
+                    <!-- Packet 1: Original Data -->
+                    <g id="packet-1">
+                        <rect width="70" height="35" fill="url(#grad1)" stroke="#00d9ff" stroke-width="2" rx="5" filter="url(#glow)"/>
+                        <text x="35" y="15" fill="#0a0e27" text-anchor="middle" font-family="Orbitron" font-size="10" font-weight="700">RAW DATA</text>
+                        <text x="35" y="28" fill="#0a0e27" text-anchor="middle" font-family="Fira Code" font-size="8">Transport Block</text>
+                        <animate attributeName="opacity" values="0;1;1;1;0" dur="6s" repeatCount="indefinite"/>
+                        <animateMotion dur="6s" repeatCount="indefinite" path="M 130 260 L 250 105"/>
+                    </g>
+
+                    <!-- Packet 2: After CRC -->
+                    <g id="packet-2">
+                        <rect width="70" height="35" fill="url(#grad2)" stroke="#00ff88" stroke-width="2" rx="5" filter="url(#glow)"/>
+                        <text x="35" y="15" fill="#0a0e27" text-anchor="middle" font-family="Orbitron" font-size="10" font-weight="700">+CRC</text>
+                        <text x="35" y="28" fill="#0a0e27" text-anchor="middle" font-family="Fira Code" font-size="8">Error Check</text>
+                        <animate attributeName="opacity" values="0;0;1;1;1;0" dur="6s" repeatCount="indefinite"/>
+                        <animateMotion dur="6s" repeatCount="indefinite" path="M 390 105 L 250 175"/>
+                    </g>
+
+                    <!-- Packet 3: After Segmentation -->
+                    <g id="packet-3">
+                        <rect width="70" height="35" fill="#ffaa00" stroke="#ffaa00" stroke-width="2" rx="5" filter="url(#glow)"/>
+                        <text x="35" y="15" fill="#0a0e27" text-anchor="middle" font-family="Orbitron" font-size="10" font-weight="700">BLOCKS</text>
+                        <text x="35" y="28" fill="#0a0e27" text-anchor="middle" font-family="Fira Code" font-size="8">CB1|CB2|CB3</text>
+                        <animate attributeName="opacity" values="0;0;0;1;1;1;0" dur="6s" repeatCount="indefinite"/>
+                        <animateMotion dur="6s" repeatCount="indefinite" path="M 390 175 L 250 245"/>
+                    </g>
+
+                    <!-- Packet 4: After LDPC -->
+                    <g id="packet-4">
+                        <rect width="70" height="35" fill="url(#grad3)" stroke="#ff00ff" stroke-width="2" rx="5" filter="url(#glow)"/>
+                        <text x="35" y="15" fill="#0a0e27" text-anchor="middle" font-family="Orbitron" font-size="10" font-weight="700">ENCODED</text>
+                        <text x="35" y="28" fill="#0a0e27" text-anchor="middle" font-family="Fira Code" font-size="8">Parity Added</text>
+                        <animate attributeName="opacity" values="0;0;0;0;1;1;1;0" dur="6s" repeatCount="indefinite"/>
+                        <animateMotion dur="6s" repeatCount="indefinite" path="M 390 245 L 250 315"/>
+                    </g>
+
+                    <!-- Packet 5: After Rate Matching -->
+                    <g id="packet-5">
+                        <rect width="70" height="35" fill="#ff3366" stroke="#ff3366" stroke-width="2" rx="5" filter="url(#glow)"/>
+                        <text x="35" y="15" fill="#fff" text-anchor="middle" font-family="Orbitron" font-size="10" font-weight="700">MATCHED</text>
+                        <text x="35" y="28" fill="#fff" text-anchor="middle" font-family="Fira Code" font-size="8">Fitted</text>
+                        <animate attributeName="opacity" values="0;0;0;0;0;1;1;1;0" dur="6s" repeatCount="indefinite"/>
+                        <animateMotion dur="6s" repeatCount="indefinite" path="M 390 315 L 250 385"/>
+                    </g>
+
+                    <!-- Packet 6: Final Transmission -->
+                    <g id="packet-6">
+                        <rect width="70" height="35" fill="url(#grad1)" stroke="#00d9ff" stroke-width="2" rx="5" filter="url(#glow)"/>
+                        <text x="35" y="15" fill="#0a0e27" text-anchor="middle" font-family="Orbitron" font-size="10" font-weight="700">TX READY</text>
+                        <text x="35" y="28" fill="#0a0e27" text-anchor="middle" font-family="Fira Code" font-size="8">Modulated</text>
+                        <animate attributeName="opacity" values="0;0;0;0;0;0;1;1;1" dur="6s" repeatCount="indefinite"/>
+                        <animateMotion dur="6s" repeatCount="indefinite" path="M 390 385 L 450 260 L 630 260 L 720 260"/>
+                    </g>
+
+                    <!-- Connection lines -->
+                    <line x1="130" y1="260" x2="250" y2="260" stroke="#00d9ff" stroke-width="2" stroke-dasharray="5,5" opacity="0.3"/>
+                    <line x1="390" y1="260" x2="450" y2="260" stroke="#00d9ff" stroke-width="2" stroke-dasharray="5,5" opacity="0.3"/>
+                    <line x1="630" y1="260" x2="720" y2="260" stroke="#ff00ff" stroke-width="2" stroke-dasharray="5,5" opacity="0.3"/>
+
+                    <!-- Status text -->
+                    <text x="500" y="50" fill="#00ff88" text-anchor="middle" font-family="Orbitron" font-size="14" id="status-text">Processing... Watch the data transform!</text>
+
+                    <!-- Throughput meter -->
+                    <g id="throughput-meter">
+                        <rect x="850" y="50" width="120" height="150" fill="#1f2847" stroke="#00d9ff" stroke-width="2" rx="5"/>
+                        <text x="910" y="75" fill="#e8f4f8" text-anchor="middle" font-family="Orbitron" font-size="12">Throughput</text>
+                        
+                        <rect x="865" y="90" width="90" height="15" fill="#0a0e27" stroke="#00ff88" stroke-width="1"/>
+                        <rect x="865" y="90" width="45" height="15" fill="#00ff88" opacity="0.7" id="throughput-bar">
+                            <animate attributeName="width" values="20;90;45;90;20" dur="5s" repeatCount="indefinite"/>
+                        </rect>
+                        
+                        <text x="910" y="125" fill="#00d9ff" text-anchor="middle" font-family="Fira Code" font-size="20" font-weight="700" id="throughput-value">2.5</text>
+                        <text x="910" y="140" fill="#8fa3bf" text-anchor="middle" font-family="Fira Code" font-size="10">Gbps</text>
+                        
+                        <text x="910" y="165" fill="#8fa3bf" text-anchor="middle" font-family="Fira Code" font-size="9">Latency: 1ms</text>
+                        <text x="910" y="180" fill="#8fa3bf" text-anchor="middle" font-family="Fira Code" font-size="9">SNR: 25dB</text>
+                    </g>
+                </svg>
+
+                <!-- Live Status Dashboard -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-top:30px;">
+                    <div class="stat-card">
+                        <div class="stat-value" id="live-stage">CRC Attach</div>
+                        <div class="stat-label">Current Stage</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="live-bits">1024</div>
+                        <div class="stat-label">Bits in Transit</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="live-blocks">3</div>
+                        <div class="stat-label">Code Blocks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="live-redundancy">33%</div>
+                        <div class="stat-label">Redundancy</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+       
+    </div>
+
+    <script>
+        let currentTab = 'channel-coding';
+        let currentMode = 'student';
+        let animating = false;
+
+        function switchTab(id) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            currentTab = id;
+        }
+
+        function switchMode(mode) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            currentMode = mode;
+            ['cc','rm','cbc'].forEach(p => {
+                const s = document.getElementById(p+'-explanation-simple');
+                const e = document.getElementById(p+'-explanation-engineer');
+                if (s && e) {
+                    s.style.display = mode === 'student' ? 'block' : 'none';
+                    e.style.display = mode === 'engineer' ? 'block' : 'none';
+                }
+            });
+        }
+
+        function randBits(n) {
+            return Array.from({length: n}, () => Math.random() > 0.5 ? 1 : 0);
+        }
+
+        function initCC() {
+            const inp = randBits(64);
+            const par = randBits(32);
+            const out = [...inp, ...par];
+            
+            const is = document.getElementById('cc-input-stream');
+            is.innerHTML = '';
+            inp.forEach(b => {
+                const s = document.createElement('span');
+                s.className = 'bit';
+                s.textContent = b;
+                is.appendChild(s);
+            });
+            
+            const os = document.getElementById('cc-output-stream');
+            os.innerHTML = '';
+            out.forEach((b,i) => {
+                const s = document.createElement('span');
+                s.className = i < 64 ? 'bit' : 'bit parity';
+                s.textContent = i < 64 ? b : 'P';
+                os.appendChild(s);
+            });
+        }
+
+        function startChannelCodingAnimation() {
+            if (animating) return;
+            animating = true;
+            initCC();
+            setTimeout(() => {
+                document.querySelectorAll('#cc-output-stream .bit').forEach((b,i) => {
+                    setTimeout(() => {
+                        b.classList.add('active');
+                        setTimeout(() => b.classList.remove('active'), 300);
+                    }, i * 20);
+                });
+                setTimeout(() => animating = false, 2000);
+            }, 500);
+        }
+
+        function resetChannelCodingAnimation() {
+            initCC();
+            animating = false;
+        }
+
+        function initRM() {
+            const inp = randBits(50);
+            const is = document.getElementById('rm-input-stream');
+            is.innerHTML = '';
+            inp.forEach(b => {
+                const s = document.createElement('span');
+                s.className = 'bit';
+                s.textContent = b;
+                is.appendChild(s);
+            });
+            
+            const os = document.getElementById('rm-output-stream');
+            os.innerHTML = '';
+            for (let i = 0; i < 50; i++) {
+                const s = document.createElement('span');
+                s.className = i < 40 ? 'bit' : 'bit punctured';
+                s.textContent = i < 40 ? inp[i] : 'X';
+                os.appendChild(s);
+            }
+        }
+
+        function updateRate(v) {
+            document.getElementById('rate-val').textContent = v;
+        }
+
+        function updateRV(v) {
+            console.log('RV:', v);
+        }
+
+        function startRateMatchingAnimation() {
+            if (animating) return;
+            animating = true;
+            initRM();
+            setTimeout(() => {
+                document.querySelectorAll('#rm-output-stream .bit').forEach((b,i) => {
+                    setTimeout(() => {
+                        b.classList.add('active');
+                        setTimeout(() => b.classList.remove('active'), 300);
+                    }, i * 25);
+                });
+                setTimeout(() => animating = false, 2000);
+            }, 500);
+        }
+
+        function resetRateMatchingAnimation() {
+            initRM();
+            animating = false;
+        }
+
+        function initCBC() {
+            const b1 = randBits(16);
+            const b2 = randBits(16);
+            const b3 = randBits(16);
+            const colors = ['#00ff88', '#ffaa00', '#ff00ff'];
+            
+            [['cbc-b1',b1], ['cbc-b2',b2], ['cbc-b3',b3]].forEach(([id,bits],idx) => {
+                const s = document.getElementById(id);
+                s.innerHTML = '';
+                bits.forEach(b => {
+                    const el = document.createElement('span');
+                    el.className = 'bit';
+                    el.style.borderColor = colors[idx];
+                    el.textContent = b;
+                    s.appendChild(el);
+                });
+            });
+            
+            const cs = document.getElementById('cbc-concat');
+            cs.innerHTML = '';
+            [b1,b2,b3].forEach((bits,idx) => {
+                bits.forEach(b => {
+                    const el = document.createElement('span');
+                    el.className = 'bit';
+                    el.style.borderColor = colors[idx];
+                    el.textContent = b;
+                    cs.appendChild(el);
+                });
+            });
+        }
+
+        function startConcatAnimation() {
+            if (animating) return;
+            animating = true;
+            initCBC();
+            setTimeout(() => {
+                document.querySelectorAll('#cbc-concat .bit').forEach((b,i) => {
+                    setTimeout(() => {
+                        b.classList.add('active');
+                        setTimeout(() => b.classList.remove('active'), 200);
+                    }, i * 15);
+                });
+                setTimeout(() => animating = false, 2000);
+            }, 500);
+        }
+
+        function resetConcatAnimation() {
+            initCBC();
+            animating = false;
+        }
+
+        window.addEventListener('load', () => {
+            initCC();
+            initRM();
+            initCBC();
+            startLiveNetworkAnimation();
+        });
+
+        // Live Network Animation
+        function startLiveNetworkAnimation() {
+            const stages = [
+                { name: 'CRC Attach', bits: 1024, blocks: 0, redundancy: '0%' },
+                { name: 'Segmentation', bits: 1048, blocks: 3, redundancy: '5%' },
+                { name: 'LDPC Encode', bits: 1572, blocks: 3, redundancy: '33%' },
+                { name: 'Rate Match', bits: 1200, blocks: 3, redundancy: '25%' },
+                { name: 'Concatenate', bits: 1200, blocks: 1, redundancy: '25%' },
+                { name: 'Transmitting', bits: 1200, blocks: 1, redundancy: '25%' }
+            ];
+
+            let currentStage = 0;
+
+            setInterval(() => {
+                const stage = stages[currentStage];
+                
+                // Update live status
+                const liveStageEl = document.getElementById('live-stage');
+                const liveBitsEl = document.getElementById('live-bits');
+                const liveBlocksEl = document.getElementById('live-blocks');
+                const liveRedundancyEl = document.getElementById('live-redundancy');
+
+                if (liveStageEl) liveStageEl.textContent = stage.name;
+                if (liveBitsEl) {
+                    liveBitsEl.textContent = stage.bits;
+                    liveBitsEl.style.color = stage.bits > 1300 ? '#ff00ff' : '#00d9ff';
+                }
+                if (liveBlocksEl) liveBlocksEl.textContent = stage.blocks;
+                if (liveRedundancyEl) liveRedundancyEl.textContent = stage.redundancy;
+
+                // Update throughput value
+                const throughputEl = document.getElementById('throughput-value');
+                if (throughputEl) {
+                    const randomThroughput = (2.0 + Math.random() * 1.5).toFixed(1);
+                    throughputEl.textContent = randomThroughput;
+                }
+
+                currentStage = (currentStage + 1) % stages.length;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

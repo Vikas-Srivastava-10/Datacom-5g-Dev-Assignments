@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5G Control Plane Protocol Stack | Enterprise Visualization</title>
+  
+  <!-- Modern UI Dependencies -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --layer3: #ff2d55;
+      --layer2: #007aff;
+      --layer1: #8e8e93;
+      --panel-bg: #242438;
+      --card-bg: #2d2d44;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+      color: #ffffff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Solid Color Panels */
+    .glass-panel {
+      background: var(--panel-bg);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Solid Background */
+    .mesh-bg {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: -2;
+    }
+
+    .grid-pattern {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: -1;
+    }
+
+    /* Pulsing Connection Animations */
+    .flow-active {
+      stroke-width: 3.5px !important;
+      filter: drop-shadow(0 0 12px currentColor);
+      stroke-dasharray: 8, 6;
+      animation: dashMove 25s linear infinite;
+      opacity: 1 !important;
+    }
+
+    @keyframes dashMove {
+      to { stroke-dashoffset: -1000; }
+    }
+
+    .layer-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+
+    .loading-pulse {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 45, 85, 0.2);
+      border-top-color: #ff2d55;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+
+  <!-- React & Babel Standalone (UMD) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="loading-screen">
+    <div class="loading-pulse"></div>
+  </div>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useLayoutEffect, useEffect, useRef, useMemo } = React;
+
+    // --- Core Data ---
+    const PROTOCOLS = {
+      NAS: { id: 'NAS', name: 'NAS', desc: 'Non-Access Stratum: Higher-level signaling between UE and Core Network (AMF).', color: 'red' },
+      RRC: { id: 'RRC', name: 'RRC', desc: 'Radio Resource Control: Manages the radio connection established between UE and gNB.', color: 'red' },
+      PDCP: { id: 'PDCP', name: 'PDCP', desc: 'Packet Data Convergence: Handles security (ciphering) and IP header compression.', color: 'blue' },
+      RLC: { id: 'RLC', name: 'RLC', desc: 'Radio Link Control: Error correction (ARQ) and packet segmentation/reassembly.', color: 'blue' },
+      MAC: { id: 'MAC', name: 'MAC', desc: 'Medium Access Control: Maps logical channels to physical channels and handles HARQ.', color: 'blue' },
+      PHY: { id: 'PHY', name: 'PHY', desc: 'Physical Layer: Responsible for actual modulation and signal transmission over the air.', color: 'slate' }
+    };
+
+    // --- Components ---
+
+    const ConnectionLines = ({ hoveredId }) => {
+      const [paths, setPaths] = useState([]);
+      const svgRef = useRef(null);
+
+      const calculate = () => {
+        if (!svgRef.current) return;
+        const svgBox = svgRef.current.getBoundingClientRect();
+
+        const getPt = (id, side) => {
+          const el = document.getElementById(id);
+          if (!el) return null;
+          const r = el.getBoundingClientRect();
+          return {
+            x: (side === 'left' ? r.left : r.right) - svgBox.left,
+            y: (r.top + r.height / 2) - svgBox.top
+          };
+        };
+
+        const config = [
+          { id: 'NAS', col: '#ff2d55', from: 'ue-nas', to: 'amf-nas' },
+          { id: 'RRC', col: '#ff2d55', from: 'ue-rrc', to: 'gnb-rrc' },
+          { id: 'PDCP', col: '#007aff', from: 'ue-pdcp', to: 'gnb-pdcp' },
+          { id: 'RLC', col: '#007aff', from: 'ue-rlc', to: 'gnb-rlc' },
+          { id: 'MAC', col: '#007aff', from: 'ue-mac', to: 'gnb-mac' },
+          { id: 'PHY', col: '#8e8e93', from: 'ue-phy', to: 'gnb-phy' }
+        ];
+
+        setPaths(config.map(c => {
+          const p1 = getPt(c.from, 'right');
+          const p2 = getPt(c.to, 'left');
+          if (!p1 || !p2) return null;
+          return { id: c.id, col: c.col, x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y };
+        }).filter(Boolean));
+      };
+
+      useLayoutEffect(() => {
+        calculate();
+        window.addEventListener('resize', calculate);
+        const obs = new ResizeObserver(calculate);
+        if (svgRef.current) obs.observe(svgRef.current);
+        return () => {
+          window.removeEventListener('resize', calculate);
+          obs.disconnect();
+        };
+      }, []);
+
+      return (
+        <svg ref={svgRef} className="absolute inset-0 w-full h-full pointer-events-none z-20" style={{ overflow: 'visible' }}>
+          <defs>
+            {['red', 'blue', 'slate'].map(color => (
+              <React.Fragment key={color}>
+                <marker id={`arrow-${color}`} markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+                  <path d="M0,0 L7,2.5 L0,5 Z" fill={color === 'red' ? '#ff2d55' : color === 'blue' ? '#007aff' : '#8e8e93'} />
+                </marker>
+                <marker id={`arrow-${color}-rev`} markerWidth="7" markerHeight="5" refX="0" refY="2.5" orient="auto">
+                  <path d="M7,0 L0,2.5 L7,5 Z" fill={color === 'red' ? '#ff2d55' : color === 'blue' ? '#007aff' : '#8e8e93'} />
+                </marker>
+              </React.Fragment>
+            ))}
+          </defs>
+          {paths.map(p => {
+            const active = hoveredId === p.id;
+            const cType = p.col === '#ff2d55' ? 'red' : p.col === '#007aff' ? 'blue' : 'slate';
+            return (
+              <g key={p.id}>
+                <line x1={p.x1} y1={p.y1} x2={p.x2} y2={p.y2} stroke={p.col} strokeWidth={active ? 3 : 2}
+                  className={`transition-all duration-300 ${active ? 'flow-active' : 'opacity-40'}`}
+                  markerEnd={`url(#arrow-${cType})`} markerStart={`url(#arrow-${cType}-rev)`} />
+              </g>
+            );
+          })}
+        </svg>
+      );
+    };
+
+    const ProtocolBlock = ({ proto, isHovered, onHover, entity }) => {
+      const theme = useMemo(() => {
+        if (proto.color === 'red') return { acc: '#ff2d55', glow: 'rgba(255, 45, 85, 0.4)', txt: 'text-rose-400' };
+        if (proto.color === 'blue') return { acc: '#007aff', glow: 'rgba(0, 122, 255, 0.4)', txt: 'text-blue-400' };
+        return { acc: '#8e8e93', glow: 'rgba(142, 142, 147, 0.4)', txt: 'text-slate-400' };
+      }, [proto.color]);
+
+      return (
+        <div id={`${entity}-${proto.id}`.toLowerCase()}
+          className={`relative w-44 h-12 rounded-xl flex items-center justify-center font-mono text-[11px] tracking-widest glass-card transition-all duration-300 ${isHovered ? 'scale-105 z-30' : 'z-10'}`}
+          style={{ 
+            borderColor: isHovered ? theme.acc : 'rgba(255,255,255,0.15)',
+            boxShadow: isHovered ? `0 0 24px ${theme.glow}` : 'none'
+          }}
+          onMouseEnter={() => onHover(proto.id)}
+          onMouseLeave={() => onHover(null)}
+        >
+          {isHovered && <div className="absolute inset-0 rounded-xl" style={{ border: `1px solid ${theme.acc}` }} />}
+          <span className={`relative z-10 font-bold ${isHovered ? 'text-white' : theme.txt}`}>{proto.name}</span>
+          
+          <div className={`absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-64 p-3 rounded-lg border border-white/20 pointer-events-none transition-all duration-500 shadow-2xl ${isHovered ? 'opacity-100 translate-y-0 visible' : 'opacity-0 translate-y-3 invisible'}`}
+            style={{ background: '#1e1e2e' }}>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: theme.acc }} />
+              <span className="text-[9px] font-black text-white uppercase tracking-widest">{proto.id}</span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-sans font-medium leading-relaxed">{proto.desc}</p>
+          </div>
+        </div>
+      );
+    };
+
+    const App = () => {
+      const [hoveredId, setHoveredId] = useState(null);
+
+      useEffect(() => {
+        const loader = document.getElementById('loading-screen');
+        if (loader) {
+          loader.style.opacity = '0';
+          setTimeout(() => loader.remove(), 500);
+        }
+      }, []);
+
+      return (
+        <div className="min-h-screen text-white selection:bg-rose-500/30" style={{ background: 'var(--bg)' }}>
+          <div className="mesh-bg" />
+          <div className="grid-pattern" />
+
+          <header className="px-12 py-10 flex justify-between items-start relative z-50">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <span className="w-8 h-[2px] bg-rose-500 shadow-[0_0_12px_#ff2d55]" />
+                <h2 className="text-[10px] font-mono font-black text-slate-500 tracking-[0.5em] uppercase">Architecture Visualization</h2>
+              </div>
+              <h1 className="text-4xl font-extrabold tracking-tighter text-white">5G Protocol Architecture</h1>
+              <h3 className="text-sm font-semibold text-slate-400 mt-2 tracking-wide font-mono">55984 - Vikas Srivastava</h3>
+            </div>
+            <div className="text-right">
+              <span className="text-[9px] font-mono font-bold bg-white/5 border border-white/10 px-4 py-2 rounded-full text-slate-400 uppercase tracking-widest">Control Plane Stack</span>
+            </div>
+          </header>
+
+          <main className="flex flex-col items-center">
+            <div className="relative w-[1100px] mt-6 mb-32">
+              <ConnectionLines hoveredId={hoveredId} />
+
+              {/* L3 Section */}
+              <div className="mb-10 glass-panel rounded-3xl p-8 border-l-[6px] border-rose-500">
+                <div className="flex items-center gap-4 mb-10">
+                  <span className="layer-badge text-rose-500 border-rose-500/20">Layer 3 — Radio Management</span>
+                  <div className="h-[1px] flex-1 bg-white/10" />
+                </div>
+                <div className="flex justify-between px-10">
+                  <div className="flex flex-col gap-6 items-center">
+                    <span className="text-[10px] font-mono text-slate-500 font-bold mb-2 uppercase tracking-widest">User Equipt.</span>
+                    <ProtocolBlock entity="UE" proto={PROTOCOLS.NAS} isHovered={hoveredId === 'NAS'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="UE" proto={PROTOCOLS.RRC} isHovered={hoveredId === 'RRC'} onHover={setHoveredId} />
+                  </div>
+                  <div className="flex flex-col gap-6 items-center">
+                    <span className="text-[10px] font-mono text-slate-500 font-bold mb-2 uppercase tracking-widest">gNodeB</span>
+                    <div id="gnb-nas-relay" className={`w-44 h-12 rounded-xl border-2 border-dashed flex items-center justify-center text-[9px] font-mono font-bold tracking-widest transition-all ${hoveredId === 'NAS' ? 'border-rose-500/50 text-rose-200 bg-rose-500/10' : 'border-white/5 text-transparent'}`}>NAS RELAY</div>
+                    <ProtocolBlock entity="gNB" proto={PROTOCOLS.RRC} isHovered={hoveredId === 'RRC'} onHover={setHoveredId} />
+                  </div>
+                  <div className="flex flex-col gap-6 items-center">
+                    <span className="text-[10px] font-mono text-slate-500 font-bold mb-2 uppercase tracking-widest">AMF Function</span>
+                    <ProtocolBlock entity="AMF" proto={PROTOCOLS.NAS} isHovered={hoveredId === 'NAS'} onHover={setHoveredId} />
+                    <div className="w-44 h-12 opacity-0" />
+                  </div>
+                </div>
+              </div>
+
+              {/* L2 Section */}
+              <div className="mb-10 glass-panel rounded-3xl p-8 border-l-[6px] border-blue-500">
+                <div className="flex items-center gap-4 mb-10">
+                  <span className="layer-badge text-blue-500 border-blue-500/20">Layer 2 — Data Link Protocols</span>
+                  <div className="h-[1px] flex-1 bg-white/10" />
+                </div>
+                <div className="flex justify-between px-10">
+                  <div className="flex flex-col gap-4">
+                    <ProtocolBlock entity="UE" proto={PROTOCOLS.PDCP} isHovered={hoveredId === 'PDCP'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="UE" proto={PROTOCOLS.RLC} isHovered={hoveredId === 'RLC'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="UE" proto={PROTOCOLS.MAC} isHovered={hoveredId === 'MAC'} onHover={setHoveredId} />
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <ProtocolBlock entity="gNB" proto={PROTOCOLS.PDCP} isHovered={hoveredId === 'PDCP'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="gNB" proto={PROTOCOLS.RLC} isHovered={hoveredId === 'RLC'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="gNB" proto={PROTOCOLS.MAC} isHovered={hoveredId === 'MAC'} onHover={setHoveredId} />
+                  </div>
+                  <div className="w-44" />
+                </div>
+              </div>
+
+              {/* L1 Section */}
+              <div className="glass-panel rounded-3xl p-8 border-l-[6px] border-slate-500">
+                <div className="flex items-center gap-4 mb-8">
+                  <span className="layer-badge text-slate-400 border-slate-500/20">Layer 1 — Physical Transmission</span>
+                  <div className="h-[1px] flex-1 bg-white/10" />
+                </div>
+                <div className="flex justify-between px-10">
+                  <ProtocolBlock entity="UE" proto={PROTOCOLS.PHY} isHovered={hoveredId === 'PHY'} onHover={setHoveredId} />
+                  <ProtocolBlock entity="gNB" proto={PROTOCOLS.PHY} isHovered={hoveredId === 'PHY'} onHover={setHoveredId} />
+                  <div className="w-44" />
+                </div>
+              </div>
+            </div>
+          </main>
+
+          <footer className="fixed bottom-0 w-full py-5 border-t border-white/10 px-12 flex justify-between items-center z-[100]" style={{ background: '#1a1a2e' }}>
+            <div className="flex gap-10 text-[9px] font-mono font-black text-slate-500 tracking-[0.3em] uppercase">
+              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_6px_#f43f5e]" /> N1/N2 SIG PATH</div>
+              <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_6px_#0ea5e9]" /> UU RADIO INTERFACE</div>
+            </div>
+            <div className="text-[10px] font-mono text-white/20 tracking-[0.4em] font-black uppercase">Technical Architecture Design 2024</div>
+          </footer>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

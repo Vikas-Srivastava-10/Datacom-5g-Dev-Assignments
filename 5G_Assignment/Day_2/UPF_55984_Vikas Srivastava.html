@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 5G UPF Architecture</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --gnb-color: #3498db;
+            --smf-color: #e67e22;
+            --upf-color: #2ecc71;
+            --dn-color: #9b59b6;
+            --wire-color: #7f8c8d;
+            --signal-color: #f1c40f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            position: relative;
+            width: 900px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: visible;
+            margin-bottom: 30px;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 14px;
+            color: rgba(0,0,0,0.2);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Architecture Blocks */
+        .block {
+            position: absolute;
+            width: 140px;
+            height: 100px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 5;
+        }
+
+        .block:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .block i { font-size: 30px; margin-bottom: 5px; }
+
+        #gnb { top: 200px; left: 50px; background-color: var(--gnb-color); }
+        #smf { top: 50px; left: 380px; background-color: var(--smf-color); }
+        #upf { top: 200px; left: 380px; background-color: var(--upf-color); }
+        #dn { top: 200px; left: 710px; background-color: var(--dn-color); }
+
+        /* Hover Theory Box (Strategic placement to not hide block) */
+        .theory-tooltip {
+            position: absolute;
+            width: 200px;
+            padding: 10px;
+            background: #333;
+            color: #fff;
+            font-size: 12px;
+            border-radius: 5px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .block:hover + .theory-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Tooltip positions */
+        #gnb-theory { top: 310px; left: 20px; }
+        #smf-theory { top: 30px; left: 540px; }
+        #upf-theory { top: 310px; left: 350px; }
+        #dn-theory { top: 310px; left: 680px; }
+
+        /* Wires and Signals */
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .wire {
+            stroke: var(--wire-color);
+            stroke-width: 3;
+            fill: none;
+        }
+
+        .signal {
+            fill: var(--signal-color);
+            visibility: hidden;
+        }
+
+        /* Animation Triggered on Hover of Blocks */
+        .active-signal {
+            visibility: visible !important;
+        }
+
+        /* Label styling */
+        .interface-label {
+            font-size: 14px;
+            font-weight: bold;
+            fill: #555;
+        }
+
+        /* Theory Section Below */
+        .content-section {
+            width: 900px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            line-height: 1.6;
+        }
+
+        h2 { color: #2c3e50; border-bottom: 2px solid var(--upf-color); padding-bottom: 10px; }
+        .highlight { font-weight: bold; color: var(--upf-color); }
+    </style>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <h1>Interactive 5G UPF Architecture</h1>
+
+    <div class="container" id="archContainer">
+        <!-- SVG Wires -->
+        <svg>
+            <!-- N3 Interface -->
+            <path id="path-n3" class="wire" d="M 190 250 L 380 250" />
+            <text x="270" y="240" class="interface-label">N3</text>
+            
+            <!-- N4 Interface -->
+            <path id="path-n4" class="wire" d="M 450 150 L 450 200" />
+            <text x="460" y="180" class="interface-label">N4</text>
+
+            <!-- N6 Interface -->
+            <path id="path-n6" class="wire" d="M 520 250 L 710 250" />
+            <text x="600" y="240" class="interface-label">N6</text>
+
+            <!-- Signals (Moving Circles) -->
+            <circle r="6" class="signal" id="sig-n3">
+                <animateMotion dur="0.5s" repeatCount="indefinite" path="M 190 250 L 380 250" />
+            </circle>
+            <circle r="6" class="signal" id="sig-n4">
+                <animateMotion dur="0.5s" repeatCount="indefinite" path="M 450 150 L 450 200" />
+            </circle>
+            <circle r="6" class="signal" id="sig-n6">
+                <animateMotion dur="0.5s" repeatCount="indefinite" path="M 520 250 L 710 250" />
+            </circle>
+        </svg>
+
+        <!-- Blocks -->
+        <div class="block" id="gnb">
+            <i class="fas fa-broadcast-tower"></i>
+            <span>gNodeB (RAN)</span>
+        </div>
+        <div class="theory-tooltip" id="gnb-theory">
+            The 5G Base Station. It connects the UE to the core network via the <b>N3 interface</b>. Handles radio resources.
+        </div>
+
+        <div class="block" id="smf">
+            <i class="fas fa-cogs"></i>
+            <span>SMF</span>
+        </div>
+        <div class="theory-tooltip" id="smf-theory">
+            <b>Session Management Function.</b> Controls the UPF via the <b>N4 interface</b> using PFCP protocol. It decides how traffic should be routed.
+        </div>
+
+        <div class="block" id="upf">
+            <i class="fas fa-network-wired"></i>
+            <span>UPF</span>
+        </div>
+        <div class="theory-tooltip" id="upf-theory">
+            <b>User Plane Function.</b> The powerhouse that processes and forwards user data packets between the RAN and the Data Network.
+        </div>
+
+        <div class="block" id="dn">
+            <i class="fas fa-globe"></i>
+            <span>Data Network</span>
+        </div>
+        <div class="theory-tooltip" id="dn-theory">
+            External network (Internet or Private Cloud) where the actual services/data reside. Connects via <b>N6</b>.
+        </div>
+
+        <div class="watermark">55984 - Vikas Srivastava</div>
+    </div>
+
+    <div class="content-section">
+        <h2>About the UPF Architecture</h2>
+        <p>The <span class="highlight">User Plane Function (UPF)</span> is a fundamental component of the 3GPP 5G Core Network (5GC). It represents the evolution of the user plane functionality found in the 4G SGW and PGW, but designed for high-performance and decentralization.</p>
+        
+        <p><b>Key Interfaces:</b></p>
+        <ul>
+            <li><span class="highlight">N3:</span> Connects the Radio Access Network (gNB) to the UPF. It carries user traffic in GTP-U tunnels.</li>
+            <li><span class="highlight">N4:</span> The control path between the Session Management Function (SMF) and the UPF. It uses <b>PFCP</b> (Packet Forwarding Control Protocol) to tell the UPF how to handle specific traffic flows.</li>
+            <li><span class="highlight">N6:</span> The exit point to the external Data Network (DN).</li>
+            <li><span class="highlight">N9 (Optional):</span> Used for roaming or when data passes through multiple UPFs (Intermediate I-UPF to Anchor UPF).</li>
+        </ul>
+
+        <p><b>Core Functions:</b></p>
+        <p>The UPF is responsible for <b>Packet Routing and Forwarding</b>, <b>Packet Inspection</b>, and enforcing <b>Quality of Service (QoS)</b> policies. It acts as an anchor point for mobility, ensuring that your data session remains uninterrupted as you move between different cell towers (gNBs).</p>
+    </div>
+
+    <script>
+        // Interactivity: Show signals when hovering over UPF or related blocks
+        const blocks = document.querySelectorAll('.block');
+        const signals = document.querySelectorAll('.signal');
+
+        blocks.forEach(block => {
+            block.addEventListener('mouseenter', () => {
+                signals.forEach(sig => sig.classList.add('active-signal'));
+            });
+            block.addEventListener('mouseleave', () => {
+                signals.forEach(sig => sig.classList.remove('active-signal'));
+            });
+        });
+    </script>
+</body>
+</html>

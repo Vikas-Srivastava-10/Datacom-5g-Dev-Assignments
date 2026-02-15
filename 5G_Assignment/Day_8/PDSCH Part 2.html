@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G NR Physical Layer - Advanced Processing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-title {
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.8em;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-tab:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Slide Container */
+        .slide {
+            display: none;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header Section */
+        .slide-header {
+            text-align: center;
+            padding: 40px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .slide-header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .slide-header .subtitle {
+            font-size: 1.2em;
+            color: #666;
+            font-weight: 300;
+        }
+
+        /* Card Styles */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            font-family: 'Poppins', sans-serif;
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Concept Overview */
+        .concept-overview {
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        .concept-icon {
+            font-size: 3em;
+            color: #667eea;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .concept-text {
+            flex: 1;
+        }
+
+        .concept-text p {
+            margin-bottom: 10px;
+            line-height: 1.8;
+            color: #444;
+        }
+
+        .concept-text ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .concept-text li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        /* Icon Cards Grid */
+        .icon-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .icon-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .icon-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .icon-card i {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .icon-card h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .icon-card p {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        /* Modulation Types */
+        .modulation-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .mod-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .mod-card:hover {
+            border-left-width: 8px;
+            transform: translateX(5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .mod-card h3 {
+            font-family: 'Poppins', sans-serif;
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .mod-card .bits {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .mod-card p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* Code Block */
+        .code-container {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 25px;
+            border-radius: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.8;
+            overflow-x: auto;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+
+        .code-container pre {
+            margin: 0;
+        }
+
+        .code-keyword {
+            color: #66d9ef;
+        }
+
+        .code-function {
+            color: #a6e22e;
+        }
+
+        .code-comment {
+            color: #75715e;
+        }
+
+        .code-number {
+            color: #ae81ff;
+        }
+
+        /* Input-Output Example */
+        .io-example {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .io-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .io-box h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+
+        .io-box .bits {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        /* Layer Flow Diagram */
+        .layer-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .flow-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .flow-arrow {
+            font-size: 2em;
+            color: #667eea;
+            animation: bounceArrow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes bounceArrow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .layer-boxes {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .layer-box {
+            background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Summary Box */
+        .summary-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 1.8em;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            margin-top: 30px;
+        }
+
+        /* Footer */
+        .slide-footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.95em;
+            margin-top: 40px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-title {
+                font-size: 1.4em;
+            }
+
+            .slide-header h1 {
+                font-size: 1.8em;
+                flex-direction: column;
+            }
+
+            .concept-overview {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .icon-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-box {
+                font-size: 1.3em;
+            }
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .slide-up {
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85em;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-content">
+            <div class="nav-title">
+                <i class="fas fa-broadcast-tower"></i> 5G NR Physical Layer
+            </div>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showSlide(0)">
+                    <i class="fas fa-random"></i> Scrambling
+                </button>
+                <button class="nav-tab" onclick="showSlide(1)">
+                    <i class="fas fa-wave-square"></i> Modulation
+                </button>
+                <button class="nav-tab" onclick="showSlide(2)">
+                    <i class="fas fa-layer-group"></i> Layer Mapping
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- SLIDE 1: SCRAMBLING -->
+        <div class="slide active" id="slide-0">
+            <div class="slide-header">
+                <h1>
+                    <i class="fas fa-random"></i>
+                    Scrambling in 5G NR Physical Layer
+                </h1>
+                <p class="subtitle">Physical Layer Processing Step</p>
+            </div>
+
+            <!-- Concept Overview -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-lightbulb"></i> Concept Overview</h2>
+                <div class="concept-overview">
+                    <div class="concept-icon">
+                        <i class="fas fa-shuffle"></i>
+                    </div>
+                    <div class="concept-text">
+                        <p><strong>What is Scrambling?</strong></p>
+                        <ul>
+                            <li><strong>Purpose:</strong> Scrambling randomizes the bit sequence before modulation to improve signal quality and reduce interference.</li>
+                            <li><strong>Mechanism:</strong> Uses a pseudo-random sequence generator to XOR with input bits.</li>
+                            <li><strong>Benefits:</strong> Prevents long sequences of identical bits, reduces peak-to-average power ratio (PAPR), and improves spectral efficiency.</li>
+                            <li><strong>Result:</strong> Enhanced signal robustness and better channel utilization.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Characteristics -->
+            <div class="card slide-up">
+                <h2><i class="fas fa-star"></i> Key Characteristics</h2>
+                <div class="icon-cards">
+                    <div class="icon-card">
+                        <i class="fas fa-arrow-right"></i>
+                        <h3>After Rate Matching</h3>
+                        <p>Applied after LDPC encoding and rate matching, before modulation</p>
+                    </div>
+                    <div class="icon-card">
+                        <i class="fas fa-dice"></i>
+                        <h3>Pseudo-Random Sequence</h3>
+                        <p>Generated using Gold sequence or similar PRNG algorithms</p>
+                    </div>
+                    <div class="icon-card">
+                        <i class="fas fa-exchange-alt"></i>
+                        <h3>Bitwise XOR Operation</h3>
+                        <p>Each bit is XORed with corresponding pseudo-random bit</p>
+                    </div>
+                    <div class="icon-card">
+                        <i class="fas fa-user-tag"></i>
+                        <h3>User-Specific Sequence</h3>
+                        <p>Scrambling sequence depends on C-RNTI and cell ID</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pseudo Code -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-code"></i> Scrambling Pseudo Code</h2>
+                <div class="code-container">
+<pre><span class="code-comment">// Scrambling Algorithm</span>
+<span class="code-keyword">Input:</span> bitSequence[<span class="code-number">0</span>…N-<span class="code-number">1</span>]
+
+<span class="code-comment">// Generate pseudo-random sequence</span>
+<span class="code-function">Generate</span> pseudoRandomSequence[<span class="code-number">0</span>…N-<span class="code-number">1</span>]
+
+<span class="code-comment">// XOR operation for scrambling</span>
+<span class="code-keyword">for</span> i <span class="code-keyword">from</span> <span class="code-number">0</span> <span class="code-keyword">to</span> N-<span class="code-number">1</span>:
+    scrambledBits[i] = bitSequence[i] <span class="code-keyword">XOR</span> pseudoRandomSequence[i]
+
+<span class="code-keyword">Output:</span> scrambledBits[<span class="code-number">0</span>…N-<span class="code-number">1</span>]</pre>
+                </div>
+            </div>
+
+            <!-- Input-Output Example -->
+            <div class="card slide-up">
+                <h2><i class="fas fa-table"></i> Input–Output Example</h2>
+                <div class="io-example">
+                    <div class="io-box">
+                        <h3>Input Bits</h3>
+                        <div class="bits">1 0 1 1 0 0 1 0</div>
+                    </div>
+                    <div class="io-box">
+                        <h3>Pseudo-Random Sequence</h3>
+                        <div class="bits">0 1 1 0 1 0 0 1</div>
+                    </div>
+                    <div class="io-box">
+                        <h3>Scrambled Output</h3>
+                        <div class="bits">1 1 0 1 1 0 1 1</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="summary-box">
+                Scrambling = Input Bits ⊕ Pseudo-Random Sequence
+            </div>
+
+            <div class="slide-footer">
+                5G NR Physical Layer Processing – Scrambling Step
+            </div>
+        </div>
+
+        <!-- SLIDE 2: MODULATION -->
+        <div class="slide" id="slide-1">
+            <div class="slide-header">
+                <h1>
+                    <i class="fas fa-wave-square"></i>
+                    Modulation in 5G NR Physical Layer
+                </h1>
+                <p class="subtitle">Mapping Bits to Modulation Symbols</p>
+            </div>
+
+            <!-- Concept Overview -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-lightbulb"></i> Concept Overview</h2>
+                <div class="concept-overview">
+                    <div class="concept-icon">
+                        <i class="fas fa-signal"></i>
+                    </div>
+                    <div class="concept-text">
+                        <p><strong>What is Modulation?</strong></p>
+                        <ul>
+                            <li><strong>Purpose:</strong> Modulation converts scrambled bits into complex symbols that can be transmitted over the wireless channel.</li>
+                            <li><strong>Mechanism:</strong> Groups of bits are mapped to symbols using amplitude and phase variations.</li>
+                            <li><strong>Benefits:</strong> Enables efficient transmission, adaptive to channel conditions, supports variable data rates.</li>
+                            <li><strong>Trade-off:</strong> Higher-order modulation increases data rate but requires better signal quality (higher SNR).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Characteristics -->
+            <div class="card slide-up">
+                <h2><i class="fas fa-star"></i> Key Characteristics</h2>
+                <div class="icon-cards">
+                    <div class="icon-card">
+                        <i class="fas fa-arrow-right"></i>
+                        <h3>After Scrambling</h3>
+                        <p>Applied to scrambled bits to create complex symbols</p>
+                    </div>
+                    <div class="icon-card">
+                        <i class="fas fa-map"></i>
+                        <h3>Bit-to-Symbol Mapping</h3>
+                        <p>Groups of bits mapped to constellation points</p>
+                    </div>
+                    <div class="icon-card">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>Supports Multiple Schemes</h3>
+                        <p>QPSK, 16-QAM, 64-QAM, 256-QAM</p>
+                    </div>
+                    <div class="icon-card">
+                        <i class="fas fa-sync-alt"></i>
+                        <h3>Adaptive to Channel</h3>
+                        <p>Modulation scheme changes based on channel quality</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modulation Types -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-th"></i> Modulation Schemes</h2>
+                <div class="modulation-types">
+                    <div class="mod-card">
+                        <h3>QPSK</h3>
+                        <div class="bits">2 bits per symbol</div>
+                        <p>Quadrature Phase Shift Keying - Most robust modulation scheme, used in poor channel conditions. Low data rate but high reliability.</p>
+                    </div>
+                    <div class="mod-card">
+                        <h3>16-QAM</h3>
+                        <div class="bits">4 bits per symbol</div>
+                        <p>16 Quadrature Amplitude Modulation - Balanced performance and speed. Good compromise between throughput and reliability.</p>
+                    </div>
+                    <div class="mod-card">
+                        <h3>64-QAM</h3>
+                        <div class="bits">6 bits per symbol</div>
+                        <p>64 Quadrature Amplitude Modulation - Higher data rate with moderate channel quality requirements. Commonly used in good conditions.</p>
+                    </div>
+                    <div class="mod-card">
+                        <h3>256-QAM</h3>
+                        <div class="bits">8 bits per symbol</div>
+                        <p>256 Quadrature Amplitude Modulation - Very high data rate requiring strong signal. Used in excellent channel conditions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pseudo Code -->
+            <div class="card slide-up">
+                <h2><i class="fas fa-code"></i> Modulation Pseudo Code</h2>
+                <div class="code-container">
+<pre><span class="code-comment">// Modulation Algorithm</span>
+<span class="code-keyword">Input:</span> scrambledBits[<span class="code-number">0</span>…N-<span class="code-number">1</span>]
+<span class="code-keyword">Choose</span> modulationScheme
+
+<span class="code-comment">// Group bits based on modulation scheme</span>
+<span class="code-keyword">if</span> modulationScheme == <span class="code-keyword">QPSK</span>:
+    bitsPerSymbol = <span class="code-number">2</span>
+<span class="code-keyword">else if</span> modulationScheme == <span class="code-keyword">16QAM</span>:
+    bitsPerSymbol = <span class="code-number">4</span>
+<span class="code-keyword">else if</span> modulationScheme == <span class="code-keyword">64QAM</span>:
+    bitsPerSymbol = <span class="code-number">6</span>
+<span class="code-keyword">else if</span> modulationScheme == <span class="code-keyword">256QAM</span>:
+    bitsPerSymbol = <span class="code-number">8</span>
+
+<span class="code-comment">// Map bit groups to complex symbols</span>
+<span class="code-keyword">for each</span> group <span class="code-keyword">of</span> bitsPerSymbol bits:
+    complexSymbol = <span class="code-function">mapToConstellation</span>(bitGroup)
+    modulationSymbols.<span class="code-function">append</span>(complexSymbol)
+
+<span class="code-keyword">Output:</span> modulationSymbols[]</pre>
+                </div>
+            </div>
+
+            <!-- Input-Output Example -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-table"></i> Input–Output Example (QPSK)</h2>
+                <div class="io-example">
+                    <div class="io-box">
+                        <h3>Input Bits</h3>
+                        <div class="bits">00 01 11 10</div>
+                    </div>
+                    <div class="io-box">
+                        <h3>Mapped Symbols</h3>
+                        <div class="bits" style="font-size: 0.9em; letter-spacing: 1px;">
+                            00→(1+j)<br>
+                            01→(-1+j)<br>
+                            11→(-1-j)<br>
+                            10→(1-j)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="summary-box">
+                Modulation = Bit Groups → Complex Symbols
+            </div>
+
+            <div class="slide-footer">
+                5G NR Physical Layer Processing – Modulation Step
+            </div>
+        </div>
+
+        <!-- SLIDE 3: LAYER MAPPING -->
+        <div class="slide" id="slide-2">
+            <div class="slide-header">
+                <h1>
+                    <i class="fas fa-layer-group"></i>
+                    Layer Mapping in 5G NR Physical Layer
+                </h1>
+                <p class="subtitle">Distributing Symbols Across MIMO Layers</p>
+            </div>
+
+            <!-- Concept Overview -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-lightbulb"></i> Concept Overview</h2>
+                <div class="concept-overview">
+                    <div class="concept-icon">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                    <div class="concept-text">
+                        <p><strong>What is Layer Mapping?</strong></p>
+                        <ul>
+                            <li><strong>Purpose:</strong> Layer mapping distributes modulation symbols across multiple transmission layers for MIMO (Multiple-Input Multiple-Output) systems.</li>
+                            <li><strong>Mechanism:</strong> Each layer represents an independent data stream that can be transmitted simultaneously.</li>
+                            <li><strong>Benefits:</strong> Enables spatial multiplexing, increases throughput, improves spectral efficiency.</li>
+                            <li><strong>Flexibility:</strong> Supports 1 to 8 layers depending on antenna configuration and channel conditions.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Characteristics -->
+            <div class="card slide-up">
+                <h2><i class="fas fa-star"></i> Key Characteristics</h2>
+                <div class="icon-cards">
+                    <div class="icon-card">
+                        <i class="fas fa-arrow-right"></i>
+                        <h3>After Modulation</h3>
+                        <p>Applied to modulated symbols to create parallel streams</p>
+                    </div>
+                    <div class="icon-card">
+                        <i class="fas fa-stream"></i>
+                        <h3>Supports 1–8 Layers</h3>
+                        <p>Number of layers depends on MIMO configuration</p>
+                    </div>
+                    <div class="icon-card">
+                        <i class="fas fa-ranking-star"></i>
+                        <h3>Based on MIMO Rank</h3>
+                        <p>Rank indicates number of independent spatial streams</p>
+                    </div>
+                    <div class="icon-card">
+                        <i class="fas fa-bezier-curve"></i>
+                        <h3>Parallel Data Streams</h3>
+                        <p>Multiple layers transmitted simultaneously</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layer Mapping Process -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-project-diagram"></i> Layer Mapping Process</h2>
+                <div class="layer-flow">
+                    <div class="flow-box">Modulation Symbols</div>
+                    <div class="flow-arrow">↓</div>
+                    <div class="flow-box">Layer Mapper</div>
+                    <div class="flow-arrow">↓</div>
+                </div>
+                <div class="layer-boxes">
+                    <div class="layer-box">Layer 1</div>
+                    <div class="layer-box">Layer 2</div>
+                    <div class="layer-box">Layer 3</div>
+                    <div class="layer-box">Layer N</div>
+                </div>
+                <p style="text-align: center; margin-top: 20px; color: #666; font-style: italic;">
+                    Symbols are distributed across layers depending on the MIMO rank
+                </p>
+            </div>
+
+            <!-- Pseudo Code -->
+            <div class="card slide-up">
+                <h2><i class="fas fa-code"></i> Layer Mapping Pseudo Code</h2>
+                <div class="code-container">
+<pre><span class="code-comment">// Layer Mapping Algorithm</span>
+<span class="code-keyword">Input:</span> modulationSymbols[<span class="code-number">0</span>…N-<span class="code-number">1</span>]
+<span class="code-keyword">Number of layers</span> = L
+
+<span class="code-comment">// Initialize layer arrays</span>
+<span class="code-keyword">for</span> i <span class="code-keyword">from</span> <span class="code-number">0</span> <span class="code-keyword">to</span> L-<span class="code-number">1</span>:
+    layers[i] = []
+
+<span class="code-comment">// Distribute symbols across layers (round-robin)</span>
+<span class="code-keyword">for</span> i <span class="code-keyword">from</span> <span class="code-number">0</span> <span class="code-keyword">to</span> N-<span class="code-number">1</span>:
+    layerIndex = i <span class="code-keyword">mod</span> L
+    layers[layerIndex].<span class="code-function">append</span>(modulationSymbols[i])
+
+<span class="code-keyword">Output:</span> layers[<span class="code-number">0</span>…L-<span class="code-number">1</span>]</pre>
+                </div>
+            </div>
+
+            <!-- Input-Output Example -->
+            <div class="card fade-in">
+                <h2><i class="fas fa-table"></i> Input–Output Example (2 Layers)</h2>
+                <div style="background: linear-gradient(135deg, #f5f7fa 0%, #e3f2fd 100%); padding: 30px; border-radius: 15px; margin-top: 20px;">
+                    <div class="io-box" style="margin-bottom: 20px;">
+                        <h3>Input Symbols</h3>
+                        <div class="bits">S1  S2  S3  S4  S5  S6</div>
+                    </div>
+                    <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                        <div class="io-box" style="background: linear-gradient(135deg, #51cf66 0%, #37b24d 100%); flex: 1; min-width: 200px;">
+                            <h3>Layer 1</h3>
+                            <div class="bits">S1  S3  S5</div>
+                        </div>
+                        <div class="io-box" style="background: linear-gradient(135deg, #ff6b6b 0%, #fa5252 100%); flex: 1; min-width: 200px;">
+                            <h3>Layer 2</h3>
+                            <div class="bits">S2  S4  S6</div>
+                        </div>
+                    </div>
+                    <p style="text-align: center; margin-top: 20px; color: #555; font-weight: 500;">
+                        <i class="fas fa-info-circle"></i> Symbols are distributed in round-robin fashion across layers
+                    </p>
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="summary-box">
+                Layer Mapping = Distributing Symbols Across MIMO Layers
+            </div>
+
+            <div class="slide-footer">
+                5G NR Physical Layer Processing – Layer Mapping Step
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showSlide(index) {
+            // Hide all slides
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach(slide => slide.classList.remove('active'));
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Show selected slide
+            document.getElementById(`slide-${index}`).classList.add('active');
+            tabs[index].classList.add('active');
+
+            // Smooth scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Add entrance animations on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards
+        document.querySelectorAll('.card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

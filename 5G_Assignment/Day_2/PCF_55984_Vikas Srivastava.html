@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G PCF Architecture Interactive Diagram</title>
+    <style>
+        :root {
+            --pcf-color: #e74c3c;
+            --amf-color: #3498db;
+            --smf-color: #2ecc71;
+            --udr-color: #f1c40f;
+            --af-color: #9b59b6;
+            --chf-color: #e67e22;
+            --bg-dark: #1a1a2e;
+            --text-light: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 900px;
+            height: 600px;
+            margin-top: 50px;
+        }
+
+        /* SVG Connection Layer */
+        #connections {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .wire {
+            fill: none;
+            stroke: #444;
+            stroke-width: 2;
+            stroke-dasharray: 5;
+        }
+
+        .signal {
+            fill: none;
+            stroke: cyan;
+            stroke-width: 3;
+            stroke-dasharray: 10, 150;
+            stroke-linecap: round;
+            animation: flow 0.8s linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes flow {
+            from { stroke-dashoffset: 160; }
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Block Styling */
+        .nf-block {
+            position: absolute;
+            width: 140px;
+            height: 80px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .nf-block:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+        }
+
+        .nf-block i { font-size: 1.5rem; margin-bottom: 5px; }
+
+        /* Tooltip Theory Box */
+        .theory-tooltip {
+            visibility: hidden;
+            width: 200px;
+            background-color: #fff;
+            color: #333;
+            text-align: left;
+            padding: 15px;
+            border-radius: 8px;
+            position: absolute;
+            z-index: 100;
+            font-weight: normal;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            pointer-events: none;
+            line-height: 1.4;
+        }
+
+        .nf-block:hover .theory-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Block Positions */
+        #pcf { top: 250px; left: 380px; background-color: var(--pcf-color); border: 2px solid #fff; }
+        #amf { top: 100px; left: 100px; background-color: var(--amf-color); }
+        #smf { top: 400px; left: 100px; background-color: var(--smf-color); }
+        #udr { top: 250px; left: 650px; background-color: var(--udr-color); color: #333; }
+        #af  { top: 50px;  left: 600px; background-color: var(--af-color); }
+        #chf { top: 450px; left: 600px; background-color: var(--chf-color); }
+
+        /* Tooltip positions (prevent overlap) */
+        #pcf .theory-tooltip { top: -130px; left: -30px; width: 220px; }
+        #amf .theory-tooltip { top: -50px; left: 150px; }
+        #smf .theory-tooltip { top: -50px; left: 150px; }
+        #udr .theory-tooltip { top: -50px; left: -210px; }
+        #af  .theory-tooltip { top: 80px;  left: -50px; }
+        #chf .theory-tooltip { top: -150px; left: -50px; }
+
+        /* Watermark */
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0.3;
+            font-size: 1.2rem;
+            color: #fff;
+            pointer-events: none;
+            font-family: monospace;
+        }
+
+        /* Signals visibility on hover */
+        .nf-block:hover ~ #connections .signal { opacity: 1; }
+
+        /* Theory Content Below */
+        .theory-section {
+            max-width: 800px;
+            margin: 50px 20px;
+            line-height: 1.6;
+            padding: 30px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+        }
+        
+        h2 { color: var(--pcf-color); border-bottom: 2px solid var(--pcf-color); padding-bottom: 10px; }
+        .highlight { color: #00d2ff; font-weight: bold; }
+    </style>
+    <!-- Icons Library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <h1>5G PCF Architecture (Service-Based)</h1>
+    <p>Hover over any Network Function (NF) to see its role and trigger signal transmission.</p>
+
+    <div class="container">
+        <!-- Connecting Wires & Signals -->
+        <svg id="connections">
+            <!-- AMF to PCF -->
+            <path d="M240 140 L380 270" class="wire"/>
+            <path id="sig-amf" d="M240 140 L380 270" class="signal"/>
+            
+            <!-- SMF to PCF -->
+            <path d="M240 440 L380 310" class="wire"/>
+            <path id="sig-smf" d="M240 440 L380 310" class="signal"/>
+
+            <!-- UDR to PCF -->
+            <path d="M650 290 L520 290" class="wire"/>
+            <path id="sig-udr" d="M650 290 L520 290" class="signal"/>
+
+            <!-- AF to PCF -->
+            <path d="M600 90 L480 250" class="wire"/>
+            <path id="sig-af" d="M600 90 L480 250" class="signal"/>
+
+            <!-- CHF to PCF -->
+            <path d="M600 490 L480 330" class="wire"/>
+            <path id="sig-chf" d="M600 490 L480 330" class="signal"/>
+        </svg>
+
+        <!-- Network Function Blocks -->
+        <div class="nf-block" id="amf">
+            <i class="fas fa-tower-cell"></i> AMF
+            <div class="theory-tooltip">
+                <b>Access & Mobility Function</b><br><br>
+                Communicates via Npcf_AMPolicyControl to receive rules regarding mobility management, registration areas, and radio access restrictions.
+            </div>
+        </div>
+
+        <div class="nf-block" id="smf">
+            <i class="fas fa-network-wired"></i> SMF
+            <div class="theory-tooltip">
+                <b>Session Management Function</b><br><br>
+                Interacts with PCF via Npcf_SMPolicyControl to get QoS (Quality of Service) and charging rules for PDU sessions.
+            </div>
+        </div>
+
+        <div class="nf-block" id="pcf">
+            <i class="fas fa-brain"></i> PCF
+            <div class="theory-tooltip">
+                <b>Policy Control Function</b><br><br>
+                The central decision point. It retrieves subscriber data from UDR and provides real-time policy rules to AMF, SMF, and AF to govern network behavior.
+            </div>
+        </div>
+
+        <div class="nf-block" id="udr">
+            <i class="fas fa-database"></i> UDR
+            <div class="theory-tooltip">
+                <b>Unified Data Repository</b><br><br>
+                Stores the long-term subscription policy data. PCF fetches individual user profiles from here to make customized decisions.
+            </div>
+        </div>
+
+        <div class="nf-block" id="af">
+            <i class="fas fa-laptop-code"></i> AF
+            <div class="theory-tooltip">
+                <b>Application Function</b><br><br>
+                Influences traffic routing and provides application-level policy requirements (e.g., specific latency needs for gaming) to the PCF.
+            </div>
+        </div>
+
+        <div class="nf-block" id="chf">
+            <i class="fas fa-file-invoice-dollar"></i> CHF
+            <div class="theory-tooltip">
+                <b>Charging Function</b><br><br>
+                Provides spending limits and quota information. PCF ensures users don't exceed their data limits based on policies.
+            </div>
+        </div>
+    </div>
+
+    <div class="watermark">55984 - Vikas Srivastava</div>
+
+    <div class="theory-section">
+        <h2>Understanding the PCF Architecture</h2>
+        <p>In the 5G Core, the <span class="highlight">Policy Control Function (PCF)</span> acts as the unified policy framework. Unlike 4G where policy was scattered, 5G centralizes it to enable network slicing and dynamic QoS.</p>
+        
+        <ul>
+            <li><strong>SBA Interaction:</strong> The PCF communicates using RESTful APIs over the <span class="highlight">Service Based Interface (SBI)</span>.</li>
+            <li><strong>QoS Management:</strong> It translates application requirements into network-level parameters like 5QI (5G QoS Identifier).</li>
+            <li><strong>Mobility Control:</strong> It enforces rules on where a user can roam and which network slices they can access.</li>
+            <li><strong>Signal Flow:</strong> When you hover over the blocks, notice the <span class="highlight">cyan signals</span> moving toward the PCF. This represents the request-response cycle where NFs fetch policy updates instantly.</li>
+        </ul>
+        <p>This architecture allows operators to offer "tailor-made" connectivity, such as prioritized bandwidth for emergency services or lower latency for autonomous vehicles.</p>
+    </div>
+
+</body>
+</html>

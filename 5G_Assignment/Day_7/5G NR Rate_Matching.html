@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G NR Rate Matching | Physical Layer Presentation</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #0071c5; /* Intel Blue */
+            --secondary: #00c7ff;
+            --bg-dark: #0a192f;
+            --card-bg: #112240;
+            --text-main: #e6f1ff;
+            --text-dim: #8892b0;
+            --accent: #64ffda;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header Section */
+        header {
+            text-align: center;
+            padding: 60px 0;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            color: var(--secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* Description Styling */
+        .content-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+            border-left: 4px solid var(--primary);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .description p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            text-align: justify;
+        }
+
+        /* Architecture Diagram */
+        .arch-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 50px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .node {
+            background: var(--primary);
+            padding: 20px;
+            border-radius: 8px;
+            width: 180px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 199, 255, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .node:hover { transform: scale(1.05); }
+
+        .node i { font-size: 2rem; margin-bottom: 10px; display: block; }
+
+        .arrow {
+            color: var(--accent);
+            font-size: 1.5rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Bit Stream Animation */
+        .bit-animation {
+            height: 40px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .bit {
+            position: absolute;
+            color: var(--accent);
+            font-family: 'Fira Code', monospace;
+            font-weight: bold;
+            animation: moveRight 5s linear infinite;
+        }
+
+        /* Code Block Styling */
+        .code-container {
+            background: #011627;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        pre {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            color: #d6deeb;
+        }
+
+        .keyword { color: #c792ea; }
+        .comment { color: #637777; font-style: italic; }
+        .number { color: #f78c6c; }
+
+        /* Output Box */
+        .output-box {
+            background: #1e1e1e;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+
+        @keyframes moveRight {
+            0% { left: -10%; }
+            100% { left: 110%; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .arch-container { flex-direction: column; }
+            .arrow { transform: rotate(90deg); margin: 10px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>5G NR Rate Matching</h1>
+        <p>Physical Layer (TS 38.212) Integration & Processing</p>
+    </header>
+
+    <!-- Moving Bits Background Element -->
+    <div class="bit-animation">
+        <span class="bit" style="animation-delay: 0s;">101101011001</span>
+        <span class="bit" style="animation-delay: 2s;">111000101011</span>
+        <span class="bit" style="animation-delay: 4s;">001110101101</span>
+    </div>
+
+    <!-- 3 Paragraph Description -->
+    <section class="content-section">
+        <div class="description">
+            <p>
+                <strong>The Core Concept:</strong> Rate matching in 5G NR is a fundamental physical layer procedure that adapts the output of the channel encoder (LDPC for data channels) to the exact number of bits available in the allocated physical resource blocks (PRBs). It ensures that the transport block size matches the transmission capacity determined by the Modulation and Coding Scheme (MCS) and the allocated time-frequency resources. This flexibility allows the system to handle varying channel conditions and throughput requirements dynamically.
+            </p>
+            <p>
+                <strong>The Process Flow:</strong> The procedure consists of three main sub-stages: bit selection, sub-block interleaving, and bit collection. It utilizes a <strong>Circular Buffer</strong> mechanism where the encoded bits are stored. Depending on the allocated resource $E$, the system performs either <em>Puncturing</em> (if $E$ is less than the coded bits $N$, discarding parity bits), <em>Shortening</em>, or <em>Repetition</em> (if $E$ is greater than $N$, cycling through the buffer multiple times to fill the gap).
+            </p>
+            <p>
+                <strong>Strategic Importance:</strong> Beyond mere sizing, rate matching incorporates interleaving to provide robustness against burst errors. By rearranging the bit sequence, the system ensures that consecutive errors in the radio channel are dispersed when decoded, significantly improving the Block Error Rate (BLER). This block is the bridge between theoretical channel coding and the practical constraints of the 5G air interface (Uu interface).
+            </p>
+        </div>
+    </section>
+
+    <!-- Architecture Visual -->
+    <h2 style="text-align:center; color: var(--secondary); margin-bottom: 20px;">Architecture Flow</h2>
+    <div class="arch-container">
+        <div class="node">
+            <i class="fas fa-microchip"></i>
+            <span>LDPC Encoder</span>
+            <small style="display:block; font-size:0.7rem; color:var(--accent)">(Input N bits)</small>
+        </div>
+        <div class="arrow"><i class="fas fa-chevron-right"></i></div>
+        <div class="node">
+            <i class="fas fa-redo"></i>
+            <span>Circular Buffer</span>
+            <small style="display:block; font-size:0.7rem; color:var(--accent)">(Bit Selection)</small>
+        </div>
+        <div class="arrow"><i class="fas fa-random"></i></div>
+        <div class="node">
+            <i class="fas fa-th"></i>
+            <span>Block Interleaving</span>
+            <small style="display:block; font-size:0.7rem; color:var(--accent)">(Permutation)</small>
+        </div>
+        <div class="arrow"><i class="fas fa-broadcast-tower"></i></div>
+        <div class="node">
+            <i class="fas fa-signal"></i>
+            <span>Output Mapping</span>
+            <small style="display:block; font-size:0.7rem; color:var(--accent)">(Target E bits)</small>
+        </div>
+    </div>
+
+    <!-- Code Section -->
+    <h2 style="color: var(--secondary); margin-bottom: 20px;"><i class="fas fa-code"></i> Implementation: Circular Buffer & Rate Matching</h2>
+    <div class="code-container">
+        <div class="code-header">
+            <span>rate_matching.cpp</span>
+            <span>C++17</span>
+        </div>
+<pre>
+<span class="keyword">#include</span> &lt;iostream&gt;
+<span class="keyword">#include</span> &lt;vector&gt;
+
+<span class="comment">// 5G NR Rate Matching (Simplified Circular Buffer Selection)</span>
+<span class="keyword">std::vector</span>&lt;uint8_t&gt; rateMatch(<span class="keyword">const std::vector</span>&lt;uint8_t&gt;&amp; codedBits, <span class="keyword">int</span> E) {
+    <span class="keyword">int</span> N = codedBits.size();
+    <span class="keyword">std::vector</span>&lt;uint8_t&gt; output(E);
+
+    <span class="comment">// Selection and Repetition Logic</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i < E; i++) {
+        <span class="comment">// Circularly access bits: Supports repetition and puncturing</span>
+        output[i] = codedBits[i % N];
+    }
+    <span class="keyword">return</span> output;
+}
+
+<span class="keyword">int</span> main() {
+    <span class="comment">// Input: 10 bits from LDPC encoder</span>
+    <span class="keyword">std::vector</span>&lt;uint8_t&gt; coded = {<span class="number">1,0,1,1,0,0,1,0,1,1</span>}; 
+    
+    <span class="comment">// Target E = 16 (Requires repetition)</span>
+    <span class="keyword">int</span> E = <span class="number">16</span>;  
+    <span class="keyword">auto</span> output = rateMatch(coded, E);
+
+    <span class="keyword">std::cout</span> << <span class="string">"Output bits: "</span>;
+    <span class="keyword">for</span> (<span class="keyword">auto</span> b : output) <span class="keyword">std::cout</span> << (<span class="keyword">int</span>)b << <span class="string">" "</span>;
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+    </div>
+
+    <!-- Output Section -->
+    <div class="output-box">
+        <strong style="color: #4caf50;">[System Output]</strong><br>
+        <span style="color: #fff;">Input (N=10): 1 0 1 1 0 0 1 0 1 1</span><br>
+        <span style="color: #fff;">Target (E=16): </span>
+        <span style="color: var(--accent);">1 0 1 1 0 0 1 0 1 1 1 0 1 1 0 0</span>
+        <br><br>
+        <small style="color: var(--text-dim);">*Note: The last 6 bits are repeated from the start of the buffer to match length E.</small>
+    </div>
+
+    <footer style="text-align:center; margin-top:60px; color:var(--text-dim); font-size:0.8rem;">
+        <p>5G NR Physical Layer Documentation | 3GPP Technical Specification 38.212</p>
+    </footer>
+</div>
+
+</body>
+</html>

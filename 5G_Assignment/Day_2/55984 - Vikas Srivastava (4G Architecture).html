@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4G Architecture - Clear Flow</title>
+    <style>
+        :root {
+            --ue: #00a8ff;
+            --ran: #9c88ff;
+            --mme: #fbc531;
+            --hss: #e84118;
+            --gw: #4cd137;
+            --pcrf: #487eb0;
+            --net: #2f3640;
+            --bg: #f5f6fa;
+            --line-data: #2ecc71;
+            --line-signaling: #3498db;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { color: #2f3640; margin: 0; }
+        .header p { color: #7f8c8d; }
+
+        /* Diagram Container */
+        .diagram-container {
+            position: relative;
+            width: 1100px;
+            height: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        /* Box Positioning */
+        .node {
+            position: absolute;
+            width: 140px;
+            height: 90px;
+            border-radius: 12px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s, filter 0.2s;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .node:hover { transform: scale(1.08); filter: brightness(1.1); }
+        .node i { font-size: 24px; margin-bottom: 5px; }
+        .node b { font-size: 14px; }
+        .node span { font-size: 10px; opacity: 0.9; }
+
+        /* Precise Locations */
+        #node-ue      { left: 50px;  top: 200px; background: var(--ue); }
+        #node-enodeb  { left: 250px; top: 200px; background: var(--ran); }
+        #node-mme     { left: 450px; top: 80px;  background: var(--mme); }
+        #node-hss     { left: 650px; top: 80px;  background: var(--hss); }
+        #node-sgw     { left: 450px; top: 220px; background: var(--gw); }
+        #node-pgw     { left: 650px; top: 220px; background: var(--gw); }
+        #node-pcrf    { left: 550px; top: 380px; background: var(--pcrf); }
+        #node-internet { left: 900px; top: 200px; background: var(--net); }
+
+        /* SVG Overlay */
+        .svg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* Information Panel */
+        #info-panel {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            width: 800px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 -5px 30px rgba(0,0,0,0.2);
+            z-index: 100;
+            border-top: 5px solid var(--ue);
+        }
+
+        .analogy-tag {
+            background: #f1f2f6;
+            padding: 10px;
+            border-left: 4px solid var(--ue);
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .legend {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+        }
+        .leg-item { display: flex; align-items: center; gap: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>4G LTE Interactive Map</h1>
+    <p>Watch how your phone connects to the world. Click any box!</p>
+</div>
+
+<div class="diagram-container">
+    <svg class="svg-overlay">
+        <defs>
+            <!-- Blue Arrowhead for Signaling -->
+            <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+                <path d="M0,0 L10,5 L0,10 Z" fill="var(--line-signaling)" />
+            </marker>
+            <!-- Green Arrowhead for Data -->
+            <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+                <path d="M0,0 L10,5 L0,10 Z" fill="var(--line-data)" />
+            </marker>
+        </defs>
+
+        <!-- UE to eNodeB (The Phone to Tower) -->
+        <path d="M 190 245 L 240 245" stroke="var(--line-data)" stroke-width="4" marker-end="url(#arrow-green)" />
+
+        <!-- eNodeB to MME (Signaling/Security Check) -->
+        <path d="M 330 200 L 440 135" stroke="var(--line-signaling)" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-blue)" />
+
+        <!-- eNodeB to S-GW (The Data Flow) -->
+        <path d="M 390 255 L 440 255" stroke="var(--line-data)" stroke-width="4" marker-end="url(#arrow-green)" />
+
+        <!-- MME to HSS (Checking the guest list) -->
+        <path d="M 590 125 L 640 125" stroke="var(--line-signaling)" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow-blue)" />
+
+        <!-- S-GW to P-GW (Inside the core) -->
+        <path d="M 590 265 L 640 265" stroke="var(--line-data)" stroke-width="4" marker-end="url(#arrow-green)" />
+
+        <!-- P-GW to Internet (Going out to the world) -->
+        <path d="M 790 255 L 890 255" stroke="var(--line-data)" stroke-width="4" marker-end="url(#arrow-green)" />
+
+        <!-- PCRF to P-GW (Billing Rules) -->
+        <path d="M 625 380 L 690 315" stroke="var(--line-signaling)" stroke-width="2" stroke-dasharray="3,3" marker-end="url(#arrow-blue)" />
+    </svg>
+
+    <!-- Nodes -->
+    <div class="node" id="node-ue" onclick="show('ue')"><i>📱</i><b>Mobile Phone</b><span>(UE)</span></div>
+    <div class="node" id="node-enodeb" onclick="show('enb')"><i>🗼</i><b>Cell Tower</b><span>(eNodeB)</span></div>
+    <div class="node" id="node-mme" onclick="show('mme')"><i>🧠</i><b>The Manager</b><span>(MME)</span></div>
+    <div class="node" id="node-hss" onclick="show('hss')"><i>📁</i><b>Guest List</b><span>(HSS)</span></div>
+    <div class="node" id="node-sgw" onclick="show('sgw')"><i>🚿</i><b>Data Pipe</b><span>(S-GW)</span></div>
+    <div class="node" id="node-pgw" onclick="show('pgw')"><i>🌐</i><b>Internet Exit</b><span>(P-GW)</span></div>
+    <div class="node" id="node-pcrf" onclick="show('pcrf')"><i>⚖️</i><b>Accountant</b><span>(PCRF)</span></div>
+    <div class="node" id="node-internet" onclick="show('net')"><i>🌍</i><b>The Web</b><span>(Internet)</span></div>
+</div>
+
+<div class="legend">
+    <div class="leg-item"><div style="width:20px; height:4px; background:var(--line-data);"></div> Real Data (Your Video/Chat)</div>
+    <div class="leg-item"><div style="width:20px; height:2px; border-top:2px dashed var(--line-signaling);"></div> Logic & Security (Signaling)</div>
+</div>
+
+<!-- Info Panel -->
+<div id="info-panel">
+    <h2 id="info-title">Component Name</h2>
+    <p id="info-tech">Technical Details...</p>
+    <div class="analogy-tag">
+        <strong>The "Digital Festival" Story:</strong>
+        <p id="info-story"></p>
+    </div>
+    <button onclick="document.getElementById('info-panel').style.display='none'" style="margin-top:15px; cursor:pointer;">Close</button>
+</div>
+
+<script>
+    const data = {
+        ue: {
+            t: "Your Mobile Phone (UE)",
+            te: "The User Equipment sends radio signals to the nearest tower. It holds your SIM card which is your identity.",
+            s: "You are a <b>Festival Goer</b> standing at the entrance. You're holding your ticket (SIM Card) and trying to get inside to see the show."
+        },
+        enb: {
+            t: "Cell Tower (eNodeB)",
+            te: "The tower captures radio waves from your phone and turns them into fiber-optic data signals.",
+            s: "This is the <b>Entrance Gate</b>. It’s the first thing you interact with. It takes your physical presence and converts it into a 'checked-in' status."
+        },
+        mme: {
+            t: "The Manager (MME)",
+            te: "The Mobility Management Entity handles security, location tracking, and 'handshakes'.",
+            s: "The <b>Event Manager</b>. He doesn't carry your drinks, but he checks your ID, makes sure you're allowed in, and tells you which VIP section you belong to."
+        },
+        hss: {
+            t: "Subscriber Database (HSS)",
+            te: "A huge database of every user. It knows your phone number, your plan, and if you have paid your bill.",
+            s: "The <b>Master Guest List</b>. The Manager (MME) calls this desk to ask: 'Hey, does this person actually have a VIP ticket?'"
+        },
+        sgw: {
+            t: "Serving Gateway (S-GW)",
+            te: "Routes the actual data packets. It acts as a local anchor so your connection doesn't drop when you move.",
+            s: "The <b>Backstage Tunnel</b>. This is the path your food and drinks (data) take to reach you while you are moving between different stages."
+        },
+        pgw: {
+            t: "Packet Gateway (P-GW)",
+            te: "The final exit. It gives your phone an IP address and connects you to the outside world.",
+            s: "The <b>Main Exit/Main Stage</b>. Once you pass through this gate, you are officially connected to the entire world outside the festival."
+        },
+        pcrf: {
+            t: "Policy & Billing (PCRF)",
+            te: "Decides how fast your internet is. If you have 'Unlimited Data', it tells the gateway to keep the speeds high.",
+            s: "The <b>Accountant</b>. He monitors how much you're drinking. If you only paid for 'Basic Access', he tells the bartender to slow down your service."
+        },
+        net: {
+            t: "The Internet",
+            te: "The final destination: YouTube, WhatsApp, Instagram, and more.",
+            s: "The <b>Global City</b>. Everything outside the festival. Once you are connected, you can talk to anyone, anywhere in the world."
+        }
+    };
+
+    function show(id) {
+        const item = data[id];
+        document.getElementById('info-title').innerText = item.t;
+        document.getElementById('info-tech').innerText = item.te;
+        document.getElementById('info-story').innerHTML = item.s;
+        document.getElementById('info-panel').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

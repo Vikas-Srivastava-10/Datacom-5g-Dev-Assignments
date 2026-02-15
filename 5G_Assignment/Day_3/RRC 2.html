@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G NR RRC Architecture - Professional Teaching Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #0a0e14;
+            --bg-card: #161b22;
+            --accent-cyan: #00f2ff;
+            --accent-pink: #ff007a;
+            --accent-green: #39ff14;
+            --accent-yellow: #f9d423;
+            --accent-purple: #9d50bb;
+            --text-main: #e6edf3;
+            --border-color: #30363d;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* Professional Watermark */
+        .watermark {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: rgba(255, 242, 0, 0.4);
+            border: 1px solid rgba(255, 242, 0, 0.2);
+            padding: 8px 15px;
+            border-radius: 5px;
+            pointer-events: none;
+            z-index: 1000;
+            letter-spacing: 1px;
+        }
+
+        header {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, #00f2ff, #9d50bb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        /* The Main Architecture Stage */
+        .stage {
+            position: relative;
+            width: 1100px;
+            height: 600px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        /* Layers Layout */
+        .layer-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            z-index: 2;
+        }
+
+        .external-layer {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed #444;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #8b949e;
+        }
+
+        /* RRC Sub-blocks Grid */
+        .rrc-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+            margin: 30px 0;
+        }
+
+        .comp-card {
+            background: #21262d;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .comp-card i {
+            font-size: 24px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        /* Block Colors */
+        .c-sys { border-left: 5px solid var(--accent-cyan); }
+        .c-sys i { color: var(--accent-cyan); }
+        .c-pag { border-left: 5px solid var(--accent-yellow); }
+        .c-pag i { color: var(--accent-yellow); }
+        .c-con { border-left: 5px solid var(--accent-green); }
+        .c-con i { color: var(--accent-green); }
+        .c-mob { border-left: 5px solid var(--accent-pink); }
+        .c-mob i { color: var(--accent-pink); }
+        .c-mea { border-left: 5px solid var(--accent-purple); }
+        .c-mea i { color: var(--accent-purple); }
+        .c-sec { border-left: 5px solid #ff5722; }
+        .c-sec i { color: #ff5722; }
+
+        .comp-card:hover {
+            transform: translateY(-5px);
+            background: #30363d;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Info Display Hub */
+        #info-hub {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 242, 255, 0.05);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 12px;
+            min-height: 80px;
+            transition: all 0.3s;
+        }
+
+        #info-hub h4 { margin: 0 0 5px 0; color: var(--accent-cyan); text-transform: uppercase; font-size: 14px; }
+        #info-hub p { margin: 0; font-size: 15px; color: #b1bac4; }
+
+        /* SVG Connections */
+        .connection-svg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .wire {
+            fill: none;
+            stroke: #30363d;
+            stroke-width: 2;
+        }
+
+        .pulse {
+            fill: var(--accent-cyan);
+            filter: blur(2px);
+            visibility: hidden;
+        }
+
+        .stage:hover .pulse {
+            visibility: visible;
+            animation: flow 0.6s linear infinite;
+        }
+
+        @keyframes flow {
+            to { offset-distance: 100%; }
+        }
+
+        /* Detailed Theory Section */
+        .theory-section {
+            width: 1100px;
+            margin-top: 50px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .theory-box {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .theory-box h2 {
+            color: var(--accent-cyan);
+            font-size: 1.2rem;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .theory-box p { font-size: 14px; line-height: 1.6; color: #8b949e; }
+
+        ul.feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul.feature-list li {
+            margin-bottom: 12px;
+            padding-left: 25px;
+            position: relative;
+            font-size: 14px;
+        }
+
+        ul.feature-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-pink);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="watermark">55984 - Vikas Srivastava</div>
+
+    <header>
+        <h1>5G NR RRC Internal Architecture</h1>
+        <p style="color: #8b949e;">Interactive Protocol Layer Map for Advanced Wireless Engineering</p>
+    </header>
+
+    <div class="stage">
+        <!-- SVG Connections -->
+        <svg class="connection-svg">
+            <!-- Central Vertical Lines -->
+            <path id="line1" class="wire" d="M 550 80 L 550 150" />
+            <path id="line2" class="wire" d="M 550 450 L 550 520" />
+            
+            <!-- Signal Pulses -->
+            <circle class="pulse" r="4" style="offset-path: path('M 550 80 L 550 520');"></circle>
+            <circle class="pulse" r="3" style="offset-path: path('M 550 520 L 550 80'); animation-delay: 0.3s; fill: var(--accent-pink);"></circle>
+        </svg>
+
+        <!-- Top Layer: Core Network Interface -->
+        <div class="external-layer">
+            <i class="fas fa-network-wired"></i> NAS LAYER (AMF / CORE NETWORK)
+        </div>
+
+        <!-- RRC Component Grid -->
+        <div class="rrc-grid">
+            <div class="comp-card c-sys" onmouseover="showTheory('sys')">
+                <i class="fas fa-satellite-dish"></i>
+                <div>
+                    <strong>System Info</strong>
+                    <div style="font-size: 11px; color: #8b949e;">MIB & SIBs Broadcast</div>
+                </div>
+            </div>
+
+            <div class="comp-card c-pag" onmouseover="showTheory('pag')">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    <strong>Paging</strong>
+                    <div style="font-size: 11px; color: #8b949e;">UE Notification</div>
+                </div>
+            </div>
+
+            <div class="comp-card c-con" onmouseover="showTheory('con')">
+                <i class="fas fa-project-diagram"></i>
+                <div>
+                    <strong>Connection</strong>
+                    <div style="font-size: 11px; color: #8b949e;">Setup & Reconfig</div>
+                </div>
+            </div>
+
+            <div class="comp-card c-mob" onmouseover="showTheory('mob')">
+                <i class="fas fa-route"></i>
+                <div>
+                    <strong>Mobility</strong>
+                    <div style="font-size: 11px; color: #8b949e;">Handover & Cell Resel</div>
+                </div>
+            </div>
+
+            <div class="comp-card c-mea" onmouseover="showTheory('mea')">
+                <i class="fas fa-chart-bar"></i>
+                <div>
+                    <strong>Measurements</strong>
+                    <div style="font-size: 11px; color: #8b949e;">RSRP / RSRQ Reports</div>
+                </div>
+            </div>
+
+            <div class="comp-card c-sec" onmouseover="showTheory('sec')">
+                <i class="fas fa-user-shield"></i>
+                <div>
+                    <strong>Security</strong>
+                    <div style="font-size: 11px; color: #8b949e;">AS Ciphering</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Hub (Active Content) -->
+        <div id="info-hub">
+            <h4 id="info-title">Hover over a component</h4>
+            <p id="info-text">Select any architectural block to see how it functions within the 5G NR protocol stack.</p>
+        </div>
+
+        <!-- Bottom Layer: Data Link Interface -->
+        <div class="external-layer">
+            L2 LAYERS (PDCP | RLC | MAC | PHY)
+        </div>
+    </div>
+
+    <!-- Static Theory Section -->
+    <div class="theory-section">
+        <div class="theory-box">
+            <h2>The Role of RRC in 5G</h2>
+            <p>The Radio Resource Control (RRC) protocol exists in Layer 3 of the 5G NR control plane protocol stack. It acts as the "Controller" that configures all lower layers to ensure a reliable radio link.</p>
+            <ul class="feature-list">
+                <li><b>Configuration:</b> Defines how the UE and gNB communicate at the physical level.</li>
+                <li><b>QoS Mapping:</b> Ensures that different types of traffic (Vo5G, Video, Web) get the correct priority.</li>
+                <li><b>UE Power Saving:</b> Controls DRX (Discontinuous Reception) cycles.</li>
+            </ul>
+        </div>
+
+        <div class="theory-box">
+            <h2>RRC State Transitions</h2>
+            <p>The 5G RRC introduces the <b>Inactive State</b> to reduce signaling overhead for small data bursts while keeping the battery life long.</p>
+            <ul class="feature-list" style="color: var(--accent-green);">
+                <li><b>IDLE to CONNECTED:</b> Triggered by User Data or Paging.</li>
+                <li><b>CONNECTED to INACTIVE:</b> Triggered by inactivity timer to save power.</li>
+                <li><b>INACTIVE to CONNECTED:</b> Resume procedure using stored UE context.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const theoryData = {
+            sys: {
+                title: "System Information Broadcast",
+                text: "RRC handles the broadcasting of Master Information Block (MIB) and System Information Blocks (SIBs). These parameters allow the UE to know the cell bandwidth, frame structure, and access permissions."
+            },
+            pag: {
+                title: "Paging Control",
+                text: "Used to reach UEs in Idle or Inactive states. The RRC layer generates paging messages to notify the UE of incoming MT (Mobile Terminated) calls or updates to system information."
+            },
+            con: {
+                title: "Connection Management",
+                text: "This block manages the establishment, maintenance, and release of the RRC connection. It includes the configuration of Signaling Radio Bearers (SRB) and Data Radio Bearers (DRB)."
+            },
+            mob: {
+                title: "Mobility Functions",
+                text: "Handles handovers in Connected mode and provides the UE with parameters for Cell Selection and Reselection when the user is moving between different gNB coverage areas."
+            },
+            mea: {
+                title: "Measurement Configuration",
+                text: "RRC instructs the UE on which frequencies to monitor and what thresholds (RSRP/RSRQ) to use for reporting. This data is critical for making handover decisions."
+            },
+            sec: {
+                title: "Security Control",
+                text: "Responsible for Access Stratum (AS) security. It handles the activation of integrity protection and ciphering to ensure that radio signaling and user data cannot be intercepted."
+            }
+        };
+
+        function showTheory(key) {
+            const hub = document.getElementById('info-hub');
+            const title = document.getElementById('info-title');
+            const text = document.getElementById('info-text');
+            
+            hub.style.borderColor = 'var(--accent-cyan)';
+            hub.style.background = 'rgba(0, 242, 255, 0.1)';
+            title.innerText = theoryData[key].title;
+            text.innerText = theoryData[key].text;
+        }
+    </script>
+</body>
+</html>

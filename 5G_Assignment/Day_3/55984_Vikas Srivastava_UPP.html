@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5G User Plane Protocol Stack | Technical Architecture</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --accent-teal: #2dd4bf;
+      --accent-blue: #007aff;
+      --accent-slate: #8e8e93;
+      --panel-bg: #242438;
+      --card-bg: #2d2d44;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-x: hidden;
+      color: #ffffff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Solid Color Panels */
+    .glass-panel {
+      background: var(--panel-bg);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Solid Background */
+    .mesh-bg {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: -2;
+    }
+
+    .grid-pattern {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: -1;
+    }
+
+    /* SVG Connection Animations */
+    .flow-line {
+      transition: all 0.3s ease;
+    }
+
+    .flow-active {
+      stroke-width: 3.5px !important;
+      filter: drop-shadow(0 0 12px currentColor);
+      stroke-dasharray: 8, 6;
+      animation: dashMove 30s linear infinite;
+      opacity: 1 !important;
+    }
+
+    @keyframes dashMove {
+      to { stroke-dashoffset: -1000; }
+    }
+
+    .layer-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+
+    .loading-pulse {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(45, 212, 191, 0.2);
+      border-top-color: var(--accent-teal);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="loading-screen"><div class="loading-pulse"></div></div>
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect, useRef, useLayoutEffect, useMemo } = React;
+
+    const PROTOCOLS = {
+      SDAP: { id: 'SDAP', name: 'SDAP', desc: 'Service Data Adaptation Protocol: Maps QoS flows to Data Radio Bearers (DRBs) and marks QoS flow IDs.', color: 'teal', hex: '#2dd4bf' },
+      PDCP: { id: 'PDCP', name: 'PDCP', desc: 'Packet Data Convergence Protocol: Handles ciphering, integrity protection, and header compression (ROHC).', color: 'blue', hex: '#007aff' },
+      RLC: { id: 'RLC', name: 'RLC', desc: 'Radio Link Control: Error correction via ARQ, segmentation, and flow control.', color: 'blue', hex: '#007aff' },
+      MAC: { id: 'MAC', name: 'MAC', desc: 'Medium Access Control: Logic-to-transport channel mapping and HARQ scheduling.', color: 'blue', hex: '#007aff' },
+      PHY: { id: 'PHY', name: 'PHY', desc: 'Physical Layer: Responsible for actual modulation and signal transmission over the air.', color: 'slate', hex: '#8e8e93' }
+    };
+
+    const ProtocolBlock = ({ proto, isHovered, onHover, entity }) => {
+      const theme = useMemo(() => {
+        if (proto.color === 'teal') return { acc: '#2dd4bf', glow: 'rgba(45, 212, 191, 0.4)', txt: 'text-teal-400' };
+        if (proto.color === 'blue') return { acc: '#007aff', glow: 'rgba(0, 122, 255, 0.4)', txt: 'text-blue-400' };
+        return { acc: '#8e8e93', glow: 'rgba(142, 142, 147, 0.4)', txt: 'text-slate-400' };
+      }, [proto.color]);
+
+      return (
+        <div id={`${entity}-${proto.id}`.toLowerCase()}
+          className={`relative w-48 h-12 rounded-xl flex items-center justify-center font-mono text-[12px] tracking-widest glass-card cursor-pointer transition-all duration-300 ${isHovered ? 'scale-105 z-30' : 'z-10'}`}
+          style={{ 
+            borderColor: isHovered ? theme.acc : 'rgba(255,255,255,0.15)',
+            boxShadow: isHovered ? `0 0 24px ${theme.glow}` : 'none'
+          }}
+          onMouseEnter={() => onHover(proto.id)}
+          onMouseLeave={() => onHover(null)}>
+          {isHovered && <div className="absolute inset-0 rounded-xl" style={{ border: `1px solid ${theme.acc}` }} />}
+          <span className={`relative z-10 font-bold ${isHovered ? 'text-white' : theme.txt}`}>{proto.name}</span>
+          
+          <div className={`absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-72 p-4 rounded-xl border border-white/20 pointer-events-none transition-all duration-500 shadow-2xl ${isHovered ? 'opacity-100 translate-y-0 visible' : 'opacity-0 translate-y-4 invisible'}`}
+            style={{ background: '#1e1e2e' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-2 h-2 rounded-full" style={{ background: theme.acc }} />
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">{proto.id} Protocol</span>
+            </div>
+            <p className="text-[11px] text-slate-300 font-sans font-medium leading-relaxed">{proto.desc}</p>
+          </div>
+        </div>
+      );
+    };
+
+    const App = () => {
+      const [hoveredId, setHoveredId] = useState(null);
+      const svgRef = useRef(null);
+      const containerRef = useRef(null);
+      const [paths, setPaths] = useState([]);
+
+      const calculatePaths = () => {
+        if (!svgRef.current) return;
+        const box = svgRef.current.getBoundingClientRect();
+        
+        const connections = ['sdap', 'pdcp', 'rlc', 'mac', 'phy'].map(id => {
+          const uEl = document.getElementById(`ue-${id}`);
+          const gEl = document.getElementById(`gnb-${id}`);
+          if (!uEl || !gEl) return null;
+
+          const uRect = uEl.getBoundingClientRect();
+          const gRect = gEl.getBoundingClientRect();
+
+          return {
+            id: id.toUpperCase(),
+            x1: uRect.right - box.left,
+            y1: (uRect.top + uRect.height / 2) - box.top,
+            x2: gRect.left - box.left,
+            y2: (gRect.top + gRect.height / 2) - box.top,
+            color: PROTOCOLS[id.toUpperCase()].hex
+          };
+        }).filter(Boolean);
+
+        setPaths(connections);
+      };
+
+      useEffect(() => {
+        const loader = document.getElementById('loading-screen');
+        if (loader) {
+          loader.style.opacity = '0';
+          setTimeout(() => loader.remove(), 500);
+        }
+
+        // Use ResizeObserver for perfect alignment during layout changes
+        const observer = new ResizeObserver(() => calculatePaths());
+        if (containerRef.current) observer.observe(containerRef.current);
+        
+        calculatePaths();
+        window.addEventListener('resize', calculatePaths);
+        
+        return () => {
+          window.removeEventListener('resize', calculatePaths);
+          observer.disconnect();
+        };
+      }, []);
+
+      return (
+        <div className="min-h-screen text-white selection:bg-teal-500/30" style={{ background: 'var(--bg)' }}>
+          <div className="mesh-bg" />
+          <div className="grid-pattern" />
+
+          <header className="px-12 py-10 flex justify-between items-start relative z-50">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <span className="w-8 h-[2px] bg-teal-500 shadow-[0_0_12px_#2dd4bf]" />
+                <h2 className="text-[10px] font-mono font-black text-slate-500 tracking-[0.5em] uppercase">Architecture Visualization</h2>
+              </div>
+              <h1 className="text-4xl font-extrabold tracking-tighter text-white">5G User Plane Protocol Stack</h1>
+              <h3 className="text-sm font-semibold text-slate-400 mt-2 tracking-wide font-mono">55984 - Vikas Srivastava</h3>
+            </div>
+            <div className="text-right">
+              <span className="text-[9px] font-mono font-bold bg-white/5 border border-white/10 px-4 py-2 rounded-full text-slate-400 uppercase tracking-widest">TS 38.300 compliant</span>
+            </div>
+          </header>
+
+          <main className="flex flex-col items-center" ref={containerRef}>
+            <div className="relative w-[1000px] mt-6 mb-32">
+              {/* SVG Layer for Connections */}
+              <svg ref={svgRef} className="absolute inset-0 w-full h-full pointer-events-none z-20" style={{ overflow: 'visible' }}>
+                <defs>
+                  {Object.values(PROTOCOLS).map(p => (
+                    <React.Fragment key={p.id}>
+                      <marker id={`marker-${p.id}-end`} markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                        <path d="M0,0 L8,3 L0,6 Z" fill={p.hex} />
+                      </marker>
+                      <marker id={`marker-${p.id}-start`} markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
+                        <path d="M8,0 L0,3 L8,6 Z" fill={p.hex} />
+                      </marker>
+                    </React.Fragment>
+                  ))}
+                </defs>
+                {paths.map(path => (
+                  <g key={path.id}>
+                    {/* Background glow line */}
+                    <line x1={path.x1} y1={path.y1} x2={path.x2} y2={path.y2} stroke={path.color} strokeWidth="1" opacity="0.1" />
+                    {/* Main flow line */}
+                    <line 
+                      x1={path.x1} y1={path.y1} x2={path.x2} y2={path.y2} 
+                      stroke={path.color} 
+                      strokeWidth={hoveredId === path.id ? 3.5 : 2}
+                      className={`flow-line ${hoveredId === path.id ? 'flow-active' : 'opacity-40'}`}
+                      markerEnd={`url(#marker-${path.id}-end)`}
+                      markerStart={`url(#marker-${path.id}-start)`}
+                    />
+                  </g>
+                ))}
+              </svg>
+
+              {/* Protocol Stack Visualization */}
+              <div className="mb-10 glass-panel rounded-3xl p-10 border-l-[6px] border-teal-500">
+                <div className="flex items-center gap-4 mb-10">
+                  <span className="layer-badge text-teal-400">Layer 2 — Data Adaptation & Control</span>
+                  <div className="h-[1px] flex-1 bg-white/10" />
+                </div>
+                
+                <div className="flex justify-between px-10">
+                  {/* UE Column */}
+                  <div className="flex flex-col gap-6 items-center">
+                    <span className="text-[10px] font-mono text-slate-500 font-bold mb-2 uppercase tracking-[0.3em]">UE Stack</span>
+                    <ProtocolBlock entity="ue" proto={PROTOCOLS.SDAP} isHovered={hoveredId === 'SDAP'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="ue" proto={PROTOCOLS.PDCP} isHovered={hoveredId === 'PDCP'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="ue" proto={PROTOCOLS.RLC} isHovered={hoveredId === 'RLC'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="ue" proto={PROTOCOLS.MAC} isHovered={hoveredId === 'MAC'} onHover={setHoveredId} />
+                  </div>
+
+                  {/* gNB Column */}
+                  <div className="flex flex-col gap-6 items-center">
+                    <span className="text-[10px] font-mono text-slate-500 font-bold mb-2 uppercase tracking-[0.3em]">gNodeB Stack</span>
+                    <ProtocolBlock entity="gnb" proto={PROTOCOLS.SDAP} isHovered={hoveredId === 'SDAP'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="gnb" proto={PROTOCOLS.PDCP} isHovered={hoveredId === 'PDCP'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="gnb" proto={PROTOCOLS.RLC} isHovered={hoveredId === 'RLC'} onHover={setHoveredId} />
+                    <ProtocolBlock entity="gnb" proto={PROTOCOLS.MAC} isHovered={hoveredId === 'MAC'} onHover={setHoveredId} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Physical Layer Section */}
+              <div className="glass-panel rounded-3xl p-10 border-l-[6px] border-slate-500">
+                <div className="flex items-center gap-4 mb-8">
+                  <span className="layer-badge text-slate-400">Layer 1 — Signal Transmission</span>
+                  <div className="h-[1px] flex-1 bg-white/10" />
+                </div>
+                <div className="flex justify-between px-10">
+                  <ProtocolBlock entity="ue" proto={PROTOCOLS.PHY} isHovered={hoveredId === 'PHY'} onHover={setHoveredId} />
+                  <ProtocolBlock entity="gnb" proto={PROTOCOLS.PHY} isHovered={hoveredId === 'PHY'} onHover={setHoveredId} />
+                </div>
+              </div>
+            </div>
+          </main>
+
+          <footer className="fixed bottom-0 w-full py-5 border-t border-white/10 px-12 flex justify-between items-center z-[100]" style={{ background: '#1a1a2e' }}>
+            <div className="flex gap-10 text-[9px] font-mono font-black text-slate-500 tracking-[0.3em] uppercase">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-teal-500 shadow-[0_0_8px_#2dd4bf]" /> 
+                QoS Flow Mapping
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#007aff]" /> 
+                Data Radio Bearers (DRB)
+              </div>
+            </div>
+            <div className="text-[10px] font-mono text-white/20 tracking-[0.4em] font-black uppercase italic">
+              User Plane Configuration Console
+            </div>
+          </footer>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

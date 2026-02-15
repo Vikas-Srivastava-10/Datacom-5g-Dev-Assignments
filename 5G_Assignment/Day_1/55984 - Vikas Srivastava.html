@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Non-Roaming 5G Architecture Study Map</title>
+    <style>
+        :root {
+            --bg: #0b0e14;
+            --wire-ctrl: #4facfe;
+            --wire-data: #00f2fe;
+            --text: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 { 
+            margin: 20px 0 10px 0; 
+            font-size: 2.8em; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            color: #fff; 
+            text-shadow: 0 0 15px rgba(79, 172, 254, 0.6);
+            text-align: center;
+        }
+
+        .legend { margin-bottom: 25px; font-style: italic; color: #94a3b8; font-size: 1.1em; }
+
+        /* The Main Diagram Stage */
+        .stage {
+            position: relative;
+            width: 1100px;
+            height: 720px;
+            background: #161b22;
+            border-radius: 40px;
+            border: 1px solid #30363d;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            overflow: visible;
+        }
+
+        /* SVG Wire Layer */
+        .connections {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .bus-line { stroke: #444; stroke-width: 6; stroke-linecap: round; }
+        .wire-c { stroke: var(--wire-ctrl); stroke-width: 2; fill: none; stroke-dasharray: 6; animation: dash 12s linear infinite; opacity: 0.7; }
+        .wire-d { stroke: #00ff88; stroke-width: 4; fill: none; stroke-dasharray: 12; animation: dash 6s linear infinite; }
+
+        @keyframes dash { to { stroke-dashoffset: -120; } }
+
+        /* Network Function (NF) Blocks */
+        .nf {
+            position: absolute;
+            width: 95px;
+            height: 55px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 5;
+            transition: 0.4s all cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid rgba(255,255,255,0.15);
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+
+        .nf:hover {
+            transform: scale(1.2) translateY(-8px);
+            z-index: 100;
+            box-shadow: 0 10px 40px currentColor;
+            filter: brightness(1.2);
+        }
+
+        /* Pulsing Effect for the "Big 4" Critical Components */
+        .important {
+            animation: pulse-glow 2.5s infinite ease-in-out;
+            border-width: 3px;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px currentColor; }
+            50% { box-shadow: 0 0 30px currentColor; }
+            100% { box-shadow: 0 0 5px currentColor; }
+        }
+
+        /* Unique Coloring for Visual Memory */
+        #nssf  { background: #FF5733; top: 100px; left: 60px; }
+        #nef   { background: #C70039; top: 100px; left: 200px; }
+        #nrf   { background: #900C3F; top: 100px; left: 340px; }
+        #pcf   { background: #581845; top: 100px; left: 480px; }
+        #udm   { background: #FFC300; top: 100px; left: 620px; color: #000; } /* CRITICAL */
+        #af    { background: #DAF7A6; top: 100px; left: 760px; color: #000; }
+        #easdf { background: #33FFBD; top: 100px; left: 900px; color: #000; }
+
+        #nssaaf { background: #3375FF; top: 320px; left: 130px; }
+        #ausf   { background: #8E44AD; top: 320px; left: 270px; }
+        #amf    { background: #2E86C1; top: 320px; left: 410px; } /* CRITICAL */
+        #smf    { background: #28B463; top: 320px; left: 550px; } /* CRITICAL */
+        #scp    { background: #D35400; top: 320px; left: 690px; }
+        #nsacf  { background: #7FB3D5; top: 320px; left: 830px; color: #000; }
+
+        #ue  { background: #FDFEFE; top: 560px; left: 150px; color: #000; width: 110px; }
+        #ran { background: #5D6D7E; top: 560px; left: 380px; width: 110px; }
+        #upf { background: #00FF88; top: 560px; left: 610px; width: 140px; height: 75px; color: #000; } /* CRITICAL */
+        #dn  { background: #212F3D; top: 560px; left: 880px; width: 110px; border-radius: 50px; }
+
+        /* Note Tooltips */
+        .nf .note {
+            visibility: hidden;
+            width: 280px;
+            background: #ffffff;
+            color: #1a1a1a;
+            text-align: left;
+            border-radius: 16px;
+            padding: 18px;
+            position: absolute;
+            bottom: 145%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: 0.3s;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 1.5;
+            pointer-events: none;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            border-bottom: 6px solid currentColor;
+        }
+
+        .nf:hover .note { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(-10px); }
+
+        /* Interface Labels (N-lines) */
+        .n-label {
+            position: absolute;
+            font-size: 11px;
+            font-weight: 900;
+            color: #94a3b8;
+            background: #0b0e14;
+            padding: 3px 7px;
+            border-radius: 5px;
+            z-index: 10;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Non-Roaming 5G System Architecture</h1>
+    <p class="legend">Glowing blocks represent the core pillars of the 5G network. Hover for details.</p>
+
+    <div class="stage">
+        
+        <!-- Wires and Connections -->
+        <svg class="connections">
+            <!-- Central Service Bus (SBI) -->
+            <line x1="100" y1="230" x2="1000" y2="230" class="bus-line" />
+
+            <!-- Connecting Top Row to Bus -->
+            <path d="M 107 155 V 230" class="wire-c" />
+            <path d="M 247 155 V 230" class="wire-c" />
+            <path d="M 387 155 V 230" class="wire-c" />
+            <path d="M 527 155 V 230" class="wire-c" />
+            <path d="M 667 155 V 230" class="wire-c" />
+            <path d="M 807 155 V 230" class="wire-c" />
+            <path d="M 947 155 V 230" class="wire-c" />
+
+            <!-- Connecting Middle Row to Bus -->
+            <path d="M 177 230 V 320" class="wire-c" />
+            <path d="M 317 230 V 320" class="wire-c" />
+            <path d="M 457 230 V 320" class="wire-c" />
+            <path d="M 597 230 V 320" class="wire-c" />
+            <path d="M 737 230 V 320" class="wire-c" />
+            <path d="M 877 230 V 320" class="wire-c" />
+
+            <!-- Direct Functional Interfaces (The N-Lines) -->
+            <path d="M 205 560 L 410 375" class="wire-c" /> <!-- N1 -->
+            <path d="M 435 560 L 457 375" class="wire-c" /> <!-- N2 -->
+            <path d="M 490 595 L 610 595" class="wire-d" /> <!-- N3 -->
+            <path d="M 597 375 L 680 560" class="wire-c" /> <!-- N4 -->
+            <path d="M 750 595 L 880 595" class="wire-d" /> <!-- N6 -->
+            
+            <!-- N9 Loop (UPF internal/relaying) -->
+            <path d="M 630 635 Q 680 670 730 635" class="wire-d" style="stroke-width: 2;"/>
+        </svg>
+
+        <!-- Labels for Reference Points -->
+        <div class="n-label" style="top: 460px; left: 275px;">N1 (Control)</div>
+        <div class="n-label" style="top: 460px; left: 450px;">N2 (Radio)</div>
+        <div class="n-label" style="top: 605px; left: 520px;">N3 (User Data)</div>
+        <div class="n-label" style="top: 460px; left: 650px;">N4 (Rules)</div>
+        <div class="n-label" style="top: 605px; left: 800px;">N6 (Ext DN)</div>
+        <div class="n-label" style="top: 670px; left: 670px;">N9</div>
+
+        <!-- TOP ROW FUNCTIONS -->
+        <div class="nf" id="nssf">NSSF<div class="note"><b>Slice Selection:</b> The "Personal Shopper." It selects which custom virtual network (slice) is best for your specific application requirements.</div></div>
+        <div class="nf" id="nef">NEF<div class="note"><b>Exposure:</b> The "Security Gateway." It allows 3rd party apps to safely interact with network capabilities without compromising security.</div></div>
+        <div class="nf" id="nrf">NRF<div class="note"><b>Repository:</b> The "White Pages." A centralized directory where every function registers its status so others can find it.</div></div>
+        <div class="nf" id="pcf">PCF<div class="note"><b>Policy Control:</b> The "Lawmaker." It manages Quality of Service (QoS) and determines how much bandwidth you get based on your plan.</div></div>
+        <div class="nf important" id="udm">UDM<div class="note"><b>🏆 Master Data:</b> The "Vault." It stores all permanent subscriber information, encryption keys, and service permissions. **CRITICAL PILLAR**</div></div>
+        <div class="nf" id="af">AF<div class="note"><b>App Function:</b> External services (like Netflix or Gaming servers) that request specific network behaviors for their users.</div></div>
+        <div class="nf" id="easdf">EASDF<div class="note"><b>Edge Discovery:</b> Helps the device find the server physically closest to it, reducing latency to near zero.</div></div>
+
+        <!-- MIDDLE ROW FUNCTIONS -->
+        <div class="nf" id="nssaaf">NSSAAF<div class="note"><b>Slice Auth:</b> An additional layer of security to verify if a user is permitted to join a premium or private network slice.</div></div>
+        <div class="nf" id="ausf">AUSF<div class="note"><b>Authentication:</b> The "Gatekeeper." It validates the SIM card's credentials to ensure the device is legitimate.</div></div>
+        <div class="nf important" id="amf">AMF<div class="note"><b>🏆 Mobility Manager:</b> The "Receptionist." It handles your initial connection and tracks you as you move between cell towers. **CRITICAL PILLAR**</div></div>
+        <div class="nf important" id="smf">SMF<div class="note"><b>🏆 Session Manager:</b> The "Traffic Controller." It manages your data sessions, IP addresses, and directs traffic to the UPF. **CRITICAL PILLAR**</div></div>
+        <div class="nf" id="scp">SCP<div class="note"><b>Proxy:</b> A helper that routes messages between functions in massive networks to prevent congestion.</div></div>
+        <div class="nf" id="nsacf">NSACF<div class="note"><b>Admission Control:</b> A monitoring tool that prevents too many users from joining a slice at once to prevent slowdowns.</div></div>
+
+        <!-- BOTTOM ROW (USER & DATA PATH) -->
+        <div class="nf" id="ue">UE<div class="note"><b>Your Device:</b> The physical smartphone, IoT sensor, or 5G modem.</div></div>
+        <div class="nf" id="ran">(R)AN<div class="note"><b>Radio Access:</b> The cell tower (gNodeB). It translates data into radio frequencies to reach your phone wirelessly.</div></div>
+        <div class="nf important" id="upf">UPF<div class="note"><b>🏆 User Plane:</b> The "Heavy Lifter." The only core function that actually routes your internet traffic (videos/web). **CRITICAL PILLAR**</div></div>
+        <div class="nf" id="dn">DN<div class="note"><b>Data Network:</b> The destination—whether it's the public internet or a private corporate cloud.</div></div>
+
+    </div>
+
+</body>
+</html>

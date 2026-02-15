@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G CHF Architecture - Vikas Srivastava</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --primary-font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --signal-speed: 0.5s;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: var(--primary-font);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 900px;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #ddd;
+        }
+
+        /* Blocks Styling */
+        .block {
+            position: absolute;
+            width: 140px;
+            height: 80px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 10;
+            text-align: center;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        .block i { font-size: 1.5rem; margin-bottom: 5px; }
+        .block:hover { transform: scale(1.1); box-shadow: 0 8px 15px rgba(0,0,0,0.3); }
+
+        /* Color Coding */
+        .chf { background: #2c3e50; width: 180px; height: 100px; top: 250px; left: 360px; }
+        .smf { background: #e67e22; top: 50px; left: 380px; }
+        .ocf { background: #27ae60; top: 150px; left: 150px; }
+        .cdf { background: #2980b9; top: 150px; right: 150px; }
+        .rf  { background: #8e44ad; bottom: 150px; left: 150px; }
+        .abmf { background: #c0392b; bottom: 150px; right: 150px; }
+        .billing { background: #16a085; bottom: 50px; left: 380px; }
+
+        /* SVG Wires */
+        svg.wires {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .wire {
+            fill: none;
+            stroke: #bdc3c7;
+            stroke-width: 3;
+            stroke-dasharray: 10;
+            transition: stroke 0.3s;
+        }
+
+        /* Signal Animation */
+        .signal {
+            fill: #f1c40f;
+            visibility: hidden;
+        }
+
+        .active-wire { stroke: #f1c40f; stroke-width: 4; }
+        
+        /* Hover Theory Panel */
+        #info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 200px;
+            padding: 15px;
+            background: rgba(44, 62, 80, 0.9);
+            color: white;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 20;
+        }
+
+        /* Theory Section below */
+        .theory-section {
+            max-width: 900px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            line-height: 1.6;
+        }
+
+        .theory-section h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+
+        /* Watermark */
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 14px;
+            color: rgba(0,0,0,0.3);
+            font-weight: bold;
+            z-index: 100;
+        }
+
+    </style>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="container" id="arch-container">
+        <!-- SVG for Wires -->
+        <svg class="wires">
+            <!-- Connections to CHF -->
+            <path id="path-smf" class="wire" d="M 450 130 L 450 250" />
+            <path id="path-ocf" class="wire" d="M 290 190 L 360 270" />
+            <path id="path-cdf" class="wire" d="M 610 190 L 540 270" />
+            <path id="path-rf"  class="wire" d="M 290 410 L 360 330" />
+            <path id="path-abmf" class="wire" d="M 610 410 L 540 330" />
+            <path id="path-billing" class="wire" d="M 450 500 L 450 350" />
+
+            <!-- Signal Dots -->
+            <circle id="sig-smf" class="signal" r="6">
+                <animateMotion dur="0.3s" repeatCount="indefinite" path="M 450 130 L 450 250" />
+            </circle>
+            <circle id="sig-ocf" class="signal" r="6">
+                <animateMotion dur="0.3s" repeatCount="indefinite" path="M 360 270 L 290 190" />
+            </circle>
+            <circle id="sig-cdf" class="signal" r="6">
+                <animateMotion dur="0.3s" repeatCount="indefinite" path="M 540 270 L 610 190" />
+            </circle>
+            <circle id="sig-rf" class="signal" r="6">
+                <animateMotion dur="0.3s" repeatCount="indefinite" path="M 360 330 L 290 410" />
+            </circle>
+            <circle id="sig-abmf" class="signal" r="6">
+                <animateMotion dur="0.3s" repeatCount="indefinite" path="M 540 330 L 610 410" />
+            </circle>
+            <circle id="sig-billing" class="signal" r="6">
+                <animateMotion dur="0.3s" repeatCount="indefinite" path="M 450 350 L 450 500" />
+            </circle>
+        </svg>
+
+        <!-- Functional Blocks -->
+        <div class="block smf" onmouseover="showInfo('smf')" onmouseout="hideInfo()">
+            <i class="fas fa-network-wired"></i> SMF<span>(Session Mgmt)</span>
+        </div>
+        <div class="block ocf" onmouseover="showInfo('ocf')" onmouseout="hideInfo()">
+            <i class="fas fa-bolt"></i> OCF<span>(Online Charging)</span>
+        </div>
+        <div class="block cdf" onmouseover="showInfo('cdf')" onmouseout="hideInfo()">
+            <i class="fas fa-file-invoice"></i> CDF<span>(Charging Data)</span>
+        </div>
+        <div class="block chf" onmouseover="showInfo('chf')" onmouseout="hideInfo()">
+            <i class="fas fa-server"></i> CHF Core<span>(Charging Function)</span>
+        </div>
+        <div class="block rf" onmouseover="showInfo('rf')" onmouseout="hideInfo()">
+            <i class="fas fa-calculator"></i> RF<span>(Rating Function)</span>
+        </div>
+        <div class="block abmf" onmouseover="showInfo('abmf')" onmouseout="hideInfo()">
+            <i class="fas fa-wallet"></i> ABMF<span>(Account/Balance)</span>
+        </div>
+        <div class="block billing" onmouseover="showInfo('billing')" onmouseout="hideInfo()">
+            <i class="fas fa-money-check-alt"></i> Billing System<span>(Operator BD)</span>
+        </div>
+
+        <!-- Info Panel -->
+        <div id="info-panel">Hover over a component to see details.</div>
+    </div>
+
+    <div class="theory-section">
+        <h2>Theoretical Overview: 5G Charging Function (CHF)</h2>
+        <p>In 5G networks, the <strong>Charging Function (CHF)</strong> is a key component of the Service Based Architecture (SBA). It enables <strong>Converged Charging</strong>, which merges traditional online (prepaid) and offline (postpaid) charging into a single unified system.</p>
+        
+        <ul>
+            <li><strong>SMF Interaction:</strong> The Session Management Function (SMF) triggers charging events toward the CHF using the <code>Nchf</code> interface. It requests quotas for online sessions and reports usage for offline sessions.</li>
+            <li><strong>OCF (Online Charging Function):</strong> Manages real-time credit control. It ensures a user has enough balance before allowing a service (e.g., streaming or data) to continue.</li>
+            <li><strong>CDF (Charging Data Function):</strong> Generates <strong>Charging Data Records (CDRs)</strong> based on the usage information received. These are later used for post-processing and billing.</li>
+            <li><strong>RF (Rating Function):</strong> The "brain" that determines the cost of a service. It applies rates based on data volume, time, or specific service events.</li>
+            <li><strong>ABMF (Account Balance Management Function):</strong> Maintains the actual user accounts, tracking monetary and non-monetary (e.g., free minutes, data MBs) balances.</li>
+            <li><strong>Billing System:</strong> The final destination where CDRs are processed to generate monthly invoices or update partner settlement records.</li>
+        </ul>
+    </div>
+
+    <div class="watermark">55984 - Vikas Srivastava</div>
+
+    <script>
+        const infoData = {
+            smf: "<b>SMF:</b> Acts as the Charging Trigger Function (CTF). It monitors network resource usage and sends charging requests to the CHF.",
+            ocf: "<b>OCF:</b> Performs real-time credit control. It grants 'quotas' to the network so the user doesn't exceed their balance.",
+            cdf: "<b>CDF:</b> Collects usage information and formats it into Charging Data Records (CDRs) for offline billing.",
+            chf: "<b>CHF Core:</b> The central hub that coordinates rating, account management, and converged charging logic.",
+            rf: "<b>Rating Function:</b> Calculates the price of service usage based on tariffs, time of day, and subscription plans.",
+            abmf: "<b>ABMF:</b> Stores the user's credit/debit balances. It is queried by the OCF to check for sufficient funds.",
+            billing: "<b>Billing System:</b> The external domain that receives CDRs from the Charging Gateway to generate final customer bills."
+        };
+
+        function showInfo(type) {
+            const panel = document.getElementById('info-panel');
+            panel.innerHTML = infoData[type];
+            panel.style.opacity = '1';
+
+            // Activate Signal for specific path
+            const signal = document.getElementById('sig-' + type);
+            if(signal) signal.style.visibility = 'visible';
+            
+            const wire = document.getElementById('path-' + type);
+            if(wire) wire.classList.add('active-wire');
+        }
+
+        function hideInfo() {
+            const panel = document.getElementById('info-panel');
+            panel.style.opacity = '0';
+
+            // Hide all signals
+            document.querySelectorAll('.signal').forEach(s => s.style.visibility = 'hidden');
+            document.querySelectorAll('.wire').forEach(w => w.classList.remove('active-wire'));
+        }
+    </script>
+</body>
+</html>

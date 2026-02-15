@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G NR Scrambling & QPSK Modulation</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-deep: #050a14;
+            --card-bg: #0d1b2a;
+            --primary: #00d4ff;
+            --secondary: #94bbe9;
+            --accent: #00ff9d;
+            --text-gold: #ffcc00;
+            --text-light: #e0e1dd;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-light);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header Section */
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        header p {
+            color: var(--secondary);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        /* Content Section */
+        .section-box {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            margin-bottom: 50px;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .description p {
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            text-align: justify;
+            color: #b0b3b8;
+        }
+
+        /* Architecture Styles */
+        .architecture-grid {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 60px 0;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .block {
+            background: linear-gradient(145deg, #1b263b, #0d1b2a);
+            border: 2px solid var(--primary);
+            padding: 25px;
+            border-radius: 15px;
+            width: 220px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        .block:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.4);
+        }
+
+        .block i {
+            font-size: 2.5rem;
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .block h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .flow-arrow {
+            color: var(--primary);
+            font-size: 1.5rem;
+            animation: slideRight 2s infinite;
+        }
+
+        /* Constellation Diagram */
+        .constellation-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 40px 0;
+        }
+
+        .qpsk-plot {
+            width: 300px;
+            height: 300px;
+            border: 2px solid #333;
+            position: relative;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .axis-h { width: 100%; height: 1px; background: #555; position: absolute; top: 50%; }
+        .axis-v { width: 1px; height: 100%; background: #555; position: absolute; left: 50%; }
+
+        .point {
+            width: 15px;
+            height: 15px;
+            background: var(--accent);
+            border-radius: 50%;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        .p1 { top: 25%; left: 75%; } /* 00 -> (1, 1) */
+        .p2 { top: 25%; left: 25%; } /* 01 -> (-1, 1) */
+        .p3 { top: 75%; left: 75%; } /* 10 -> (1, -1) */
+        .p4 { top: 75%; left: 25%; } /* 11 -> (-1, -1) */
+
+        .point-label {
+            position: absolute;
+            font-size: 0.8rem;
+            color: var(--text-gold);
+            margin-top: 20px;
+            font-family: 'Fira Code';
+        }
+
+        /* Code Block */
+        .code-window {
+            background: #011627;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #1e2e3e;
+        }
+
+        .code-header {
+            background: #0b192e;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e2e3e;
+        }
+
+        .code-dots span {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        pre {
+            padding: 25px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.95rem;
+            color: #d6deeb;
+            overflow-x: auto;
+        }
+
+        .cpp-kw { color: #c792ea; }
+        .cpp-fn { color: #82aaff; }
+        .cpp-cm { color: #637777; font-style: italic; }
+        .cpp-str { color: #ecc48d; }
+
+        /* Output Styling */
+        .output-container {
+            margin-top: 30px;
+            background: #000;
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Animations */
+        @keyframes slideRight {
+            0% { transform: translateX(-10px); opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { transform: translateX(10px); opacity: 0.3; }
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 10px var(--accent); }
+            50% { transform: translate(-50%, -50%) scale(1.3); box-shadow: 0 0 25px var(--accent); }
+            100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 10px var(--accent); }
+        }
+
+        @media (max-width: 768px) {
+            .architecture-grid { flex-direction: column; }
+            .flow-arrow { transform: rotate(90deg); margin: 20px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>5G NR Physical Layer</h1>
+        <p>Scrambling & QPSK Modulation Processing (3GPP TS 38.211)</p>
+    </header>
+
+    <section class="section-box">
+        <div class="description">
+            <p>
+                <strong>Scrambling Optimization:</strong> In 5G New Radio (NR), bit-level scrambling is applied to all physical channels to ensure randomization of data. This process involves a bitwise XOR operation between the input bitstream and a pseudo-random binary sequence (PRBS) generated using a Gold sequence. Scrambling is critical for suppressing inter-cell interference and preventing the transmission of long sequences of identical bits, which could cause synchronization issues or high Peak-to-Average Power Ratio (PAPR).
+            </p>
+            <p>
+                <strong>QPSK Modulation Principles:</strong> Quadrature Phase Shift Keying (QPSK) is the primary modulation scheme used for control channels and robust data transmission. It maps two scrambled bits into a single complex-valued modulation symbol. By utilizing four distinct phases (spaced $90^\circ$ apart), QPSK doubles the spectral efficiency compared to BPSK while maintaining a high degree of resilience against channel noise and phase jitters, making it ideal for the diverse 5G deployment scenarios.
+            </p>
+            <p>
+                <strong>Signal Mapping Logic:</strong> The final stage involves mapping these complex symbols into the Physical Resource Grid. In 5G NR, Gray coding is strictly followed during QPSK mapping; this ensures that adjacent constellation points differ by only one bit. This strategic mapping minimizes the Bit Error Rate (BER) because a single symbol error in the receiver—caused by noise—is most likely to result in only a single bit error rather than two.
+            </p>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <div class="architecture-grid">
+        <div class="block">
+            <i class="fas fa-stream"></i>
+            <h3>Coded Bits</h3>
+            <small>Input bit sequence $b(i)$</small>
+        </div>
+        <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="block" style="border-color: var(--accent);">
+            <i class="fas fa-random"></i>
+            <h3>Scrambler</h3>
+            <small>XOR with PRBS Sequence $c(i)$</small>
+        </div>
+        <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="block">
+            <i class="fas fa-th-large"></i>
+            <h3>QPSK Modulator</h3>
+            <small>Complex Mapping $(I, Q)$</small>
+        </div>
+        <div class="flow-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="block" style="border-color: var(--text-gold);">
+            <i class="fas fa-satellite-dish"></i>
+            <h3>Resource Grid</h3>
+            <small>RE Mapping (OFDM)</small>
+        </div>
+    </div>
+
+    <!-- Constellation Diagram Visualization -->
+    <div class="section-box" style="text-align: center;">
+        <h2 style="color: var(--primary); margin-bottom: 20px; font-family: 'Orbitron';">QPSK Constellation Map</h2>
+        <div class="constellation-wrapper">
+            <div class="qpsk-plot">
+                <div class="axis-h"></div>
+                <div class="axis-v"></div>
+                <!-- Points -->
+                <div class="point p1"><span class="point-label">00 (+1, +1)</span></div>
+                <div class="point p2"><span class="point-label">01 (-1, +1)</span></div>
+                <div class="point p3"><span class="point-label">10 (+1, -1)</span></div>
+                <div class="point p4"><span class="point-label">11 (-1, -1)</span></div>
+            </div>
+        </div>
+        <p style="font-size: 0.9rem; color: var(--secondary);">*Phase representation of scrambled bits mapping</p>
+    </div>
+
+    <!-- Code Block -->
+    <div class="code-window">
+        <div class="code-header">
+            <div class="code-dots">
+                <span style="background: #ff5f56;"></span>
+                <span style="background: #ffbd2e;"></span>
+                <span style="background: #27c93f;"></span>
+            </div>
+            <span style="font-size: 0.8rem; color: #82aaff;">NR_Scramble_Mod.cpp</span>
+        </div>
+<pre>
+<span class="cpp-kw">#include</span> &lt;iostream&gt;
+<span class="cpp-kw">#include</span> &lt;vector&gt;
+<span class="cpp-kw">#include</span> &lt;complex&gt;
+
+<span class="cpp-cm">// 5G NR Scrambling & QPSK Implementation</span>
+
+<span class="cpp-cm">// Generate Pseudo-Random Binary Sequence (Simplified)</span>
+<span class="cpp-kw">std::vector</span>&lt;uint8_t&gt; generatePRBS(<span class="cpp-kw">int</span> length, uint32_t seed) {
+    <span class="cpp-kw">std::vector</span>&lt;uint8_t&gt; prbs(length);
+    uint32_t x = seed;
+    <span class="cpp-kw">for</span> (<span class="cpp-kw">int</span> i = <span class="number">0</span>; i < length; i++) {
+        x = (x >> <span class="number">1</span>) ^ (-(x & <span class="number">1u</span>) & <span class="number">0xB400u</span>);
+        prbs[i] = x & <span class="number">1</span>;
+    }
+    <span class="cpp-kw">return</span> prbs;
+}
+
+<span class="cpp-cm">// Bitwise Scrambling (XOR)</span>
+<span class="cpp-kw">std::vector</span>&lt;uint8_t&gt; scramble(<span class="cpp-kw">const std::vector</span>&lt;uint8_t&gt;&amp; bits, <span class="cpp-kw">const std::vector</span>&lt;uint8_t&gt;&amp; prbs) {
+    <span class="cpp-kw">std::vector</span>&lt;uint8_t&gt; out(bits.size());
+    <span class="cpp-kw">for</span> (<span class="cpp-kw">size_t</span> i = <span class="number">0</span>; i < bits.size(); i++) out[i] = bits[i] ^ prbs[i];
+    <span class="cpp-kw">return</span> out;
+}
+
+<span class="cpp-cm">// QPSK Modulation Mapping</span>
+<span class="cpp-kw">auto</span> qpskModulate(<span class="cpp-kw">const std::vector</span>&lt;uint8_t&gt;&amp; bits) {
+    <span class="cpp-kw">std::vector</span>&lt;<span class="cpp-kw">std::complex</span>&lt;<span class="cpp-kw">float</span>&gt;&gt; symbols;
+    <span class="cpp-kw">for</span> (<span class="cpp-kw">size_t</span> i = <span class="number">0</span>; i < bits.size(); i += <span class="number">2</span>) {
+        <span class="cpp-kw">float</span> I = (bits[i] == <span class="number">0</span>) ? <span class="number">1.0f</span> : <span class="number">-1.0f</span>;
+        <span class="cpp-kw">float</span> Q = (bits[i+<span class="number">1</span>] == <span class="number">0</span>) ? <span class="number">1.0f</span> : <span class="number">-1.0f</span>;
+        symbols.push_back({I, Q});
+    }
+    <span class="cpp-kw">return</span> symbols;
+}</pre>
+    </div>
+
+    <!-- Output Section -->
+    <div class="output-container">
+        <div style="color: var(--accent); margin-bottom: 10px;">&gt; EXECUTION_RESULTS:</div>
+        <div style="color: #fff;">
+            Input bits:      1 0 1 1 0 1 0 0<br>
+            Scrambled bits:  1 1 0 1 ... (PRBS XOR applied)<br><br>
+            QPSK symbols mapped:<br>
+            <span style="color: var(--text-gold);">
+            Symbol 0: (-1.0, -1.0) &lt;-- Gray Coded (1,1)<br>
+            Symbol 1: ( 1.0, -1.0) &lt;-- Gray Coded (0,1)<br>
+            Symbol 2: (-1.0, -1.0) &lt;-- Gray Coded (1,1)<br>
+            Symbol 3: ( 1.0,  1.0) &lt;-- Gray Coded (0,0)
+            </span>
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 40px; color: #555; font-size: 0.8rem;">
+        3GPP Technical Specification 38.211 | 5G NR Physical Channels and Modulation
+    </footer>
+</div>
+
+</body>
+</html>

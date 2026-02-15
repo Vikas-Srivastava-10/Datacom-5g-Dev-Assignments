@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G NR Physical Layer - Interactive Visualization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            background: white;
+            display: flex;
+            justify-content: center;
+            padding: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .tab-button {
+            padding: 20px 40px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-button:hover {
+            background: #f0f0f0;
+            color: #1e3c72;
+        }
+
+        .tab-button.active {
+            color: #1e3c72;
+            border-bottom: 3px solid #1e3c72;
+            background: #f8f9fa;
+        }
+
+        .module-container {
+            display: none;
+            padding: 30px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .module-container.active {
+            display: block;
+        }
+
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .panel h3 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .controls {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .control-group select,
+        .control-group input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1em;
+        }
+
+        .control-group input[type="range"] {
+            height: 8px;
+            background: white;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .value-display {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .animation-area {
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .code-panel {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 15px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .code-panel pre {
+            margin: 0;
+        }
+
+        .keyword { color: #569cd6; }
+        .function { color: #dcdcaa; }
+        .string { color: #ce9178; }
+        .comment { color: #6a9955; }
+        .number { color: #b5cea8; }
+
+        .output-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.8;
+            border: 2px solid #dee2e6;
+        }
+
+        .output-section {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .output-section h4 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        .bit-block {
+            display: inline-block;
+            padding: 5px 10px;
+            margin: 2px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .bit-data { background: #4dabf7; color: white; }
+        .bit-crc { background: #ff6b6b; color: white; }
+        .bit-combined { background: #51cf66; color: white; }
+
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .info-box {
+            background: #e7f5ff;
+            border-left: 4px solid #1e3c72;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h4 {
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        /* Animation Styles */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        @keyframes flow {
+            0% { transform: translateX(-20px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(20px); opacity: 0; }
+        }
+
+        .pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .svg-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .split-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .tab-button {
+                padding: 15px 20px;
+                font-size: 0.9em;
+            }
+
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+        }
+
+        .result-highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-top: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📡 5G NR Physical Layer</h1>
+        <p>Interactive Visualization & Learning Platform</p>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="tab-button active" onclick="switchModule(0)">CRC Attachment</button>
+        <button class="tab-button" onclick="switchModule(1)">LDPC Base Graph</button>
+        <button class="tab-button" onclick="switchModule(2)">Code Block Segmentation</button>
+    </div>
+
+    <!-- MODULE 1: CRC ATTACHMENT -->
+    <div class="module-container active" id="module0">
+        <div class="info-box" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-left: 4px solid #1e88e5;">
+            <h4>📋 Module Overview: CRC Attachment</h4>
+            <p><strong>Purpose:</strong> The Cyclic Redundancy Check (CRC) is a fundamental error-detection mechanism in 5G NR. It's attached to the transport block to enable the receiver to detect transmission errors.</p>
+            
+            <p style="margin-top: 10px;"><strong>How It Works:</strong></p>
+            <ul style="margin-left: 20px; margin-top: 5px;">
+                <li><strong>Step 1:</strong> The transport block (TB) containing user data enters the CRC generator</li>
+                <li><strong>Step 2:</strong> A polynomial division algorithm computes CRC bits based on TB size</li>
+                <li><strong>Step 3:</strong> CRC bits are appended to the end of the transport block</li>
+                <li><strong>Step 4:</strong> The combined TB+CRC is ready for further processing</li>
+            </ul>
+            
+            <p style="margin-top: 10px;"><strong>CRC Selection Rule (3GPP TS 38.212):</strong></p>
+            <ul style="margin-left: 20px; margin-top: 5px;">
+                <li>✓ <strong>16-bit CRC:</strong> Used when TB size ≤ 3824 bits (provides basic error detection)</li>
+                <li>✓ <strong>24-bit CRC:</strong> Used when TB size > 3824 bits (provides stronger error detection for larger blocks)</li>
+            </ul>
+            
+            <p style="margin-top: 10px;"><strong>Why It Matters:</strong> CRC enables the receiver to verify data integrity. If errors are detected, the receiver can request retransmission using HARQ (Hybrid Automatic Repeat Request).</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Transport Block Size:</label>
+                <select id="crc-tb-size" onchange="updateCRCModule()">
+                    <option value="2000">2000 bits</option>
+                    <option value="3000">3000 bits</option>
+                    <option value="4000">4000 bits</option>
+                    <option value="5000">5000 bits</option>
+                </select>
+            </div>
+            <div class="value-display" id="crc-type-display">CRC Type: 16-bit</div>
+        </div>
+
+        <div class="split-layout">
+            <div>
+                <div class="panel">
+                    <h3>📊 Architecture & Animation</h3>
+                    <div class="animation-area" id="crc-animation">
+                        <svg width="100%" height="400" viewBox="0 0 400 400">
+                            <!-- Animated particles for data flow -->
+                            <circle class="data-particle" r="4" fill="#4dabf7">
+                                <animateMotion dur="3s" repeatCount="indefinite" path="M 200 50 L 200 100"/>
+                            </circle>
+                            <circle class="data-particle" r="4" fill="#4dabf7">
+                                <animateMotion dur="3s" repeatCount="indefinite" begin="0.5s" path="M 200 50 L 200 100"/>
+                            </circle>
+                            <circle class="data-particle" r="4" fill="#ff6b6b">
+                                <animateMotion dur="3s" repeatCount="indefinite" path="M 200 160 L 200 190"/>
+                            </circle>
+                            
+                            <!-- Transport Block -->
+                            <rect x="150" y="20" width="100" height="40" fill="#4dabf7" rx="5" id="crc-tb">
+                                <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="200" y="45" text-anchor="middle" fill="white" font-weight="bold">Transport Block</text>
+                            
+                            <!-- Arrow 1 -->
+                            <path d="M 200 60 L 200 100" stroke="#1e3c72" stroke-width="3" fill="none" marker-end="url(#arrowblue)"/>
+                            
+                            <!-- CRC Generator with glow effect -->
+                            <rect x="150" y="100" width="100" height="50" fill="#764ba2" rx="5" id="crc-generator">
+                                <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
+                            </rect>
+                            <circle cx="200" cy="125" r="30" fill="none" stroke="#764ba2" stroke-width="2" opacity="0.3">
+                                <animate attributeName="r" values="30;45;30" dur="2s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="0.3;0;0.3" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                            <text x="200" y="120" text-anchor="middle" fill="white" font-weight="bold" font-size="12">CRC</text>
+                            <text x="200" y="135" text-anchor="middle" fill="white" font-weight="bold" font-size="12">Generator</text>
+                            
+                            <!-- Computation indicator -->
+                            <g id="computation-viz" opacity="0.8">
+                                <circle cx="165" cy="125" r="3" fill="#ffd43b">
+                                    <animate attributeName="cy" values="120;130;120" dur="0.8s" repeatCount="indefinite"/>
+                                </circle>
+                                <circle cx="180" cy="125" r="3" fill="#ffd43b">
+                                    <animate attributeName="cy" values="120;130;120" dur="0.8s" begin="0.2s" repeatCount="indefinite"/>
+                                </circle>
+                                <circle cx="195" cy="125" r="3" fill="#ffd43b">
+                                    <animate attributeName="cy" values="120;130;120" dur="0.8s" begin="0.4s" repeatCount="indefinite"/>
+                                </circle>
+                            </g>
+                            
+                            <!-- Arrow 2 -->
+                            <path d="M 200 150 L 200 190" stroke="#1e3c72" stroke-width="3" fill="none" marker-end="url(#arrowblue)"/>
+                            
+                            <!-- CRC Bits -->
+                            <rect x="150" y="190" width="100" height="40" fill="#ff6b6b" rx="5" id="crc-bits">
+                                <animate attributeName="opacity" values="0;1;1" dur="1s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="200" y="215" text-anchor="middle" fill="white" font-weight="bold">CRC Bits</text>
+                            
+                            <!-- Arrow 3 -->
+                            <path d="M 200 230 L 200 270" stroke="#1e3c72" stroke-width="3" fill="none" marker-end="url(#arrowblue)"/>
+                            
+                            <!-- Combined Output with success glow -->
+                            <rect x="130" y="270" width="140" height="50" fill="#51cf66" rx="5" id="crc-output"/>
+                            <circle cx="200" cy="295" r="55" fill="none" stroke="#51cf66" stroke-width="2" opacity="0">
+                                <animate attributeName="opacity" values="0;0.5;0" dur="2s" repeatCount="indefinite"/>
+                                <animate attributeName="r" values="55;75;55" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                            <text x="200" y="290" text-anchor="middle" fill="white" font-weight="bold" font-size="12">Transport Block</text>
+                            <text x="200" y="305" text-anchor="middle" fill="white" font-weight="bold" font-size="12">+ CRC</text>
+                            
+                            <!-- Status indicator -->
+                            <g id="status-check">
+                                <circle cx="265" cy="295" r="8" fill="#51cf66" stroke="white" stroke-width="2">
+                                    <animate attributeName="opacity" values="0;1;1" dur="1s" repeatCount="indefinite"/>
+                                </circle>
+                                <path d="M 260 295 L 263 298 L 270 290" stroke="white" stroke-width="2" fill="none">
+                                    <animate attributeName="opacity" values="0;1;1" dur="1s" repeatCount="indefinite"/>
+                                </path>
+                            </g>
+                            
+                            <!-- Arrow marker definition -->
+                            <defs>
+                                <marker id="arrowblue" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#1e3c72" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="panel">
+                    <h3>💻 Source Code</h3>
+                    <div class="code-panel">
+<pre><span class="comment">// CRC Attachment Module</span>
+<span class="keyword">#include</span> <span class="string">&lt;iostream&gt;</span>
+<span class="keyword">#include</span> <span class="string">&lt;vector&gt;</span>
+<span class="keyword">using namespace</span> std;
+
+<span class="comment">// Function to attach CRC</span>
+vector&lt;<span class="keyword">int</span>&gt; <span class="function">attachCRC</span>(vector&lt;<span class="keyword">int</span>&gt; tb) {
+    <span class="keyword">int</span> tbSize = tb.size();
+    <span class="keyword">int</span> crcSize;
+    
+    <span class="comment">// Select CRC size based on TB size</span>
+    <span class="keyword">if</span> (tbSize &gt; <span class="number">3824</span>)
+        crcSize = <span class="number">24</span>;
+    <span class="keyword">else</span>
+        crcSize = <span class="number">16</span>;
+    
+    <span class="comment">// Dummy CRC generation (all 1s for demo)</span>
+    vector&lt;<span class="keyword">int</span>&gt; crc(crcSize, <span class="number">1</span>);
+    
+    <span class="comment">// Append CRC bits to transport block</span>
+    tb.insert(tb.end(), crc.begin(), crc.end());
+    
+    cout &lt;&lt; <span class="string">"CRC attached: "</span> &lt;&lt; crcSize &lt;&lt; <span class="string">"-bit\n"</span>;
+    <span class="keyword">return</span> tb;
+}
+
+<span class="keyword">int</span> <span class="function">main</span>() {
+    <span class="comment">// Example transport block</span>
+    vector&lt;<span class="keyword">int</span>&gt; transportBlock = {<span class="number">1,0,1,1,0,0,1,0,1,1</span>};
+    
+    cout &lt;&lt; <span class="string">"Input TB bits: "</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> b : transportBlock)
+        cout &lt;&lt; b;
+    cout &lt;&lt; endl;
+    
+    <span class="comment">// Attach CRC</span>
+    vector&lt;<span class="keyword">int</span>&gt; output = attachCRC(transportBlock);
+    
+    cout &lt;&lt; <span class="string">"Output TB + CRC bits: "</span>;
+    <span class="keyword">for</span> (<span class="keyword">int</span> b : output)
+        cout &lt;&lt; b;
+    cout &lt;&lt; endl;
+    
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <h3>📤 Output</h3>
+                    <div class="output-panel" id="crc-output-panel">
+                        <div class="output-section">
+                            <h4>Input</h4>
+                            <div>TB Size: <span id="crc-out-size">2000</span> bits</div>
+                        </div>
+                        <div class="output-section">
+                            <h4>Process</h4>
+                            <div>CRC attached: <span id="crc-out-type">16</span>-bit</div>
+                        </div>
+                        <div class="output-section">
+                            <h4>Result</h4>
+                            <div>
+                                <span class="bit-block bit-data">10110010</span>
+                                <span class="bit-block bit-crc">1111111111111111</span>
+                            </div>
+                            <div style="margin-top: 10px; color: #666;">
+                                <span style="color: #4dabf7;">■</span> Data Bits &nbsp;
+                                <span style="color: #ff6b6b;">■</span> CRC Bits
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODULE 2: LDPC BASE GRAPH SELECTION -->
+    <div class="module-container" id="module1">
+        <div class="info-box" style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-left: 4px solid #ff9f1c;">
+            <h4>📋 Module Overview: LDPC Base Graph Selection</h4>
+            <p><strong>Purpose:</strong> Low-Density Parity-Check (LDPC) codes are the channel coding scheme used in 5G NR. The Base Graph selection determines which LDPC structure will be used for encoding based on transport block characteristics.</p>
+            
+            <p style="margin-top: 10px;"><strong>Two Base Graphs Available:</strong></p>
+            <ul style="margin-left: 20px; margin-top: 5px;">
+                <li><strong>Base Graph 1 (BG1):</strong> Optimized for large transport blocks and higher coding rates. Contains 46 columns and 68 rows. Best for high throughput scenarios.</li>
+                <li><strong>Base Graph 2 (BG2):</strong> Optimized for small transport blocks and lower coding rates. Contains 42 columns and 52 rows. Best for low latency and coverage-limited scenarios.</li>
+            </ul>
+            
+            <p style="margin-top: 10px;"><strong>Selection Criteria (3GPP TS 38.212):</strong></p>
+            <ul style="margin-left: 20px; margin-top: 5px;">
+                <li><strong>BG2 is selected if ANY of these conditions are true:</strong>
+                    <ul style="margin-left: 20px; margin-top: 5px;">
+                        <li>• Target coding rate R ≤ 0.25 (low rate = more redundancy)</li>
+                        <li>• Transport block size ≤ 292 bits (very small blocks)</li>
+                        <li>• TB size ≤ 3824 bits AND R ≤ 0.67 (medium blocks with moderate rate)</li>
+                    </ul>
+                </li>
+                <li><strong>BG1 is selected otherwise</strong> (large blocks or high coding rates)</li>
+            </ul>
+            
+            <p style="margin-top: 10px;"><strong>Coding Rate:</strong> The ratio of information bits to total transmitted bits. Lower rates = more redundancy = better error correction but lower spectral efficiency.</p>
+            
+            <p style="margin-top: 10px;"><strong>Why It Matters:</strong> Proper base graph selection ensures optimal balance between throughput, latency, and reliability for different use cases (eMBB, URLLC, mMTC).</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Transport Block Size: <span id="ldpc-tb-value">3000</span> bits</label>
+                <input type="range" id="ldpc-tb-size" min="100" max="10000" value="3000" step="100" oninput="updateLDPCModule()">
+            </div>
+            <div class="control-group">
+                <label>Coding Rate: <span id="ldpc-rate-value">0.50</span></label>
+                <input type="range" id="ldpc-rate" min="0.1" max="1.0" value="0.5" step="0.05" oninput="updateLDPCModule()">
+            </div>
+            <div class="result-highlight" id="ldpc-result">Selected Base Graph: BG2</div>
+        </div>
+
+        <div class="mode-toggle">
+            <button class="mode-btn active" onclick="toggleLDPCMode('student')">👨‍🎓 Student Mode</button>
+            <button class="mode-btn" onclick="toggleLDPCMode('engineer')">👨‍💻 Engineer Mode</button>
+        </div>
+
+        <div class="info-box" id="ldpc-info">
+            <h4>Student Mode</h4>
+            <p><strong>BG1</strong> is used for large blocks or higher coding rates.</p>
+            <p><strong>BG2</strong> is used for small blocks or low coding rates.</p>
+        </div>
+
+        <div class="split-layout">
+            <div>
+                <div class="panel">
+                    <h3>📊 Decision Flow</h3>
+                    <div class="animation-area">
+                        <svg width="100%" height="450" viewBox="0 0 400 450">
+                            <!-- Input with pulse -->
+                            <rect x="130" y="20" width="140" height="40" fill="#4dabf7" rx="5">
+                                <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="200" y="45" text-anchor="middle" fill="white" font-weight="bold">TB + CRC</text>
+                            
+                            <!-- Data flow particles -->
+                            <circle r="4" fill="#4dabf7">
+                                <animateMotion dur="2s" repeatCount="indefinite" path="M 200 60 L 200 100"/>
+                            </circle>
+                            
+                            <path d="M 200 60 L 200 100" stroke="#1e3c72" stroke-width="3" marker-end="url(#arrowblue)"/>
+                            
+                            <!-- Rate Calculation with processing indicator -->
+                            <rect x="130" y="100" width="140" height="50" fill="#764ba2" rx="5">
+                                <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="200" y="120" text-anchor="middle" fill="white" font-weight="bold" font-size="12">Coding Rate</text>
+                            <text x="200" y="135" text-anchor="middle" fill="white" font-weight="bold" font-size="12">Calculation</text>
+                            
+                            <!-- Processing glow -->
+                            <circle cx="200" cy="125" r="60" fill="none" stroke="#764ba2" stroke-width="2" opacity="0.2">
+                                <animate attributeName="r" values="60;80;60" dur="2s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="0.2;0;0.2" dur="2s" repeatCount="indefinite"/>
+                            </circle>
+                            
+                            <path d="M 200 150 L 200 190" stroke="#1e3c72" stroke-width="3" marker-end="url(#arrowblue)"/>
+                            
+                            <!-- Decision Block with rotation animation -->
+                            <g id="ldpc-decision-group">
+                                <polygon points="200,190 270,230 200,270 130,230" fill="#ff9f1c" id="ldpc-decision">
+                                    <animate attributeName="opacity" values="0.8;1;0.8" dur="1s" repeatCount="indefinite"/>
+                                </polygon>
+                                <circle cx="200" cy="230" r="50" fill="none" stroke="#ff9f1c" stroke-width="2" opacity="0">
+                                    <animate attributeName="opacity" values="0;0.4;0" dur="2s" repeatCount="indefinite"/>
+                                    <animate attributeName="r" values="50;70;50" dur="2s" repeatCount="indefinite"/>
+                                </circle>
+                                <text x="200" y="225" text-anchor="middle" font-weight="bold" font-size="11">Base Graph</text>
+                                <text x="200" y="240" text-anchor="middle" font-weight="bold" font-size="11">Selection</text>
+                            </g>
+                            
+                            <!-- Condition indicators (animated) -->
+                            <g id="condition-viz">
+                                <text x="85" y="235" text-anchor="end" font-size="9" fill="#666" font-weight="bold">
+                                    Rate ≤ 0.25?
+                                    <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" repeatCount="indefinite"/>
+                                </text>
+                                <text x="315" y="235" text-anchor="start" font-size="9" fill="#666" font-weight="bold">
+                                    Large TB?
+                                    <animate attributeName="opacity" values="0.5;1;0.5" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+                                </text>
+                            </g>
+                            
+                            <!-- BG1 Path with animated flow -->
+                            <path d="M 270 230 L 330 230 L 330 330" stroke="#51cf66" stroke-width="3" marker-end="url(#arrowgreen)" id="ldpc-path-bg1">
+                                <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="2s" repeatCount="indefinite"/>
+                            </path>
+                            <rect x="290" y="330" width="80" height="40" fill="#51cf66" rx="5" id="ldpc-bg1">
+                                <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="330" y="355" text-anchor="middle" fill="white" font-weight="bold">BG1</text>
+                            
+                            <!-- BG1 Success indicator -->
+                            <circle cx="360" cy="350" r="6" fill="white" opacity="0" id="bg1-check">
+                                <animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite"/>
+                            </circle>
+                            
+                            <!-- BG2 Path with animated flow -->
+                            <path d="M 130 230 L 70 230 L 70 330" stroke="#ff9f1c" stroke-width="3" marker-end="url(#arroworange)" id="ldpc-path-bg2">
+                                <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="2s" repeatCount="indefinite"/>
+                            </path>
+                            <rect x="30" y="330" width="80" height="40" fill="#ff9f1c" rx="5" id="ldpc-bg2">
+                                <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="70" y="355" text-anchor="middle" fill="white" font-weight="bold">BG2</text>
+                            
+                            <!-- BG2 Success indicator -->
+                            <circle cx="40" cy="350" r="6" fill="white" opacity="0" id="bg2-check">
+                                <animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite"/>
+                            </circle>
+                            
+                            <!-- Info labels -->
+                            <text x="330" y="390" text-anchor="middle" font-size="9" fill="#51cf66" font-weight="bold">
+                                High Rate
+                            </text>
+                            <text x="70" y="390" text-anchor="middle" font-size="9" fill="#ff9f1c" font-weight="bold">
+                                Low Rate / Small TB
+                            </text>
+                            
+                            <defs>
+                                <marker id="arrowgreen" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#51cf66" />
+                                </marker>
+                                <marker id="arroworange" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+                                    <path d="M0,0 L0,6 L9,3 z" fill="#ff9f1c" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="panel">
+                    <h3>💻 Source Code</h3>
+                    <div class="code-panel">
+<pre><span class="comment">// LDPC Base Graph Selection</span>
+<span class="keyword">#include</span> <span class="string">&lt;iostream&gt;</span>
+<span class="keyword">using namespace</span> std;
+
+<span class="keyword">int</span> <span class="function">main</span>() {
+    <span class="keyword">int</span> tbSize;
+    <span class="keyword">double</span> codeRate;
+    
+    <span class="comment">// Input values</span>
+    cout &lt;&lt; <span class="string">"Enter TB size (bits): "</span>;
+    cin &gt;&gt; tbSize;
+    cout &lt;&lt; <span class="string">"Enter coding rate (0 to 1): "</span>;
+    cin &gt;&gt; codeRate;
+    
+    string baseGraph;
+    
+    <span class="comment">// Base graph selection logic</span>
+    <span class="keyword">if</span> (codeRate &lt;= <span class="number">0.25</span> ||
+        tbSize &lt;= <span class="number">292</span> ||
+        (tbSize &lt;= <span class="number">3824</span> && codeRate &lt;= <span class="number">0.67</span>)) {
+        baseGraph = <span class="string">"BG2"</span>;
+    } <span class="keyword">else</span> {
+        baseGraph = <span class="string">"BG1"</span>;
+    }
+    
+    <span class="comment">// Output result</span>
+    cout &lt;&lt; <span class="string">"\n--- Base Graph Selection ---\n"</span>;
+    cout &lt;&lt; <span class="string">"TB Size: "</span> &lt;&lt; tbSize &lt;&lt; <span class="string">" bits\n"</span>;
+    cout &lt;&lt; <span class="string">"Coding Rate: "</span> &lt;&lt; codeRate &lt;&lt; endl;
+    cout &lt;&lt; <span class="string">"Selected Base Graph: "</span> &lt;&lt; baseGraph;
+    
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <h3>📤 Output</h3>
+                    <div class="output-panel">
+                        <div class="output-section">
+                            <h4>Input Parameters</h4>
+                            <div>TB Size: <span id="ldpc-out-size">3000</span> bits</div>
+                            <div>Coding Rate: <span id="ldpc-out-rate">0.50</span></div>
+                        </div>
+                        <div class="output-section">
+                            <h4>Decision Logic</h4>
+                            <div id="ldpc-logic">
+                                ✓ TB size ≤ 3824<br>
+                                ✓ Coding rate ≤ 0.67<br>
+                                → BG2 selected
+                            </div>
+                        </div>
+                        <div class="output-section">
+                            <h4>Result</h4>
+                            <div style="font-size: 1.2em; font-weight: bold; color: #ff9f1c;" id="ldpc-out-result">
+                                Selected Base Graph: BG2
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODULE 3: CODE BLOCK SEGMENTATION -->
+    <div class="module-container" id="module3">
+        <div class="info-box" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-left: 4px solid #51cf66;">
+            <h4>📋 Module Overview: Code Block Segmentation & CRC Attachment</h4>
+            <p><strong>Purpose:</strong> Large transport blocks must be divided into smaller code blocks before LDPC encoding. Each code block is processed independently and gets its own CRC for additional error detection at the code block level.</p>
+            
+            <p style="margin-top: 10px;"><strong>Why Segmentation is Needed:</strong></p>
+            <ul style="margin-left: 20px; margin-top: 5px;">
+                <li><strong>LDPC Limitation:</strong> LDPC encoders have a maximum input size (Kmax). For BG1: Kmax = 8448 bits, for BG2: Kmax = 3840 bits</li>
+                <li><strong>Parallel Processing:</strong> Smaller blocks enable parallel encoding/decoding, reducing latency</li>
+                <li><strong>Error Isolation:</strong> If one code block has errors, others can still be decoded successfully</li>
+            </ul>
+            
+            <p style="margin-top: 10px;"><strong>Segmentation Process:</strong></p>
+            <ul style="margin-left: 20px; margin-top: 5px;">
+                <li><strong>Step 1:</strong> Calculate total size (TB + TB-CRC)</li>
+                <li><strong>Step 2:</strong> If size ≤ Kmax → No segmentation needed (single code block)</li>
+                <li><strong>Step 3:</strong> If size > Kmax → Split into C code blocks of approximately equal size</li>
+                <li><strong>Step 4:</strong> Attach 24-bit CRC to EACH code block (called CB-CRC)</li>
+                <li><strong>Step 5:</strong> Each code block is now ready for LDPC encoding</li>
+            </ul>
+            
+            <p style="margin-top: 10px;"><strong>Two-Level CRC Protection:</strong></p>
+            <ul style="margin-left: 20px; margin-top: 5px;">
+                <li><strong>TB-CRC (16 or 24-bit):</strong> Protects the entire transport block, detects if any code block failed</li>
+                <li><strong>CB-CRC (24-bit):</strong> Protects each individual code block, helps identify which specific block has errors</li>
+            </ul>
+            
+            <p style="margin-top: 10px;"><strong>Example:</strong> A 9000-bit TB is split into 3 code blocks. Each ~3000-bit block gets a 24-bit CRC, resulting in three 3024-bit code blocks ready for encoding.</p>
+            
+            <p style="margin-top: 10px;"><strong>Why It Matters:</strong> Segmentation with CB-CRC enables efficient processing of large data blocks while maintaining robust error detection and correction capabilities.</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label>Transport Block Size: <span id="seg-tb-value">9000</span> bits</label>
+                <input type="range" id="seg-tb-size" min="1000" max="12000" value="9000" step="100" oninput="updateSegModule()">
+            </div>
+            <div class="control-group">
+                <label>Base Graph:</label>
+                <select id="seg-base-graph" onchange="updateSegModule()">
+                    <option value="BG1">BG1</option>
+                    <option value="BG2">BG2</option>
+                </select>
+            </div>
+            <div class="value-display" id="seg-info">
+                Number of Code Blocks: <span id="seg-num-blocks">3</span>
+            </div>
+        </div>
+
+        <div class="split-layout">
+            <div>
+                <div class="panel">
+                    <h3>📊 Segmentation Process</h3>
+                    <div class="animation-area">
+                        <svg width="100%" height="500" viewBox="0 0 400 500">
+                            <!-- Input TB with size indicator -->
+                            <rect x="100" y="20" width="200" height="40" fill="#4dabf7" rx="5">
+                                <animate attributeName="opacity" values="0.7;1;0.7" dur="2s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="200" y="45" text-anchor="middle" fill="white" font-weight="bold">Transport Block + CRC</text>
+                            
+                            <!-- Size indicator -->
+                            <text x="200" y="75" text-anchor="middle" font-size="10" fill="#1e3c72" font-weight="bold">
+                                Large block detected
+                                <animate attributeName="opacity" values="0;1;1;1;0" dur="3s" repeatCount="indefinite"/>
+                            </text>
+                            
+                            <path d="M 200 60 L 200 100" stroke="#1e3c72" stroke-width="3" marker-end="url(#arrowblue)"/>
+                            
+                            <!-- Segmentation Unit with processing animation -->
+                            <rect x="100" y="100" width="200" height="50" fill="#764ba2" rx="5">
+                                <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="200" y="120" text-anchor="middle" fill="white" font-weight="bold" font-size="12">Segmentation</text>
+                            <text x="200" y="135" text-anchor="middle" fill="white" font-weight="bold" font-size="12">Logic</text>
+                            
+                            <!-- Splitting visualization -->
+                            <g id="split-indicator">
+                                <line x1="150" y1="125" x2="120" y2="125" stroke="white" stroke-width="2" opacity="0.6">
+                                    <animate attributeName="x2" values="150;80;150" dur="2s" repeatCount="indefinite"/>
+                                </line>
+                                <line x1="200" y1="125" x2="200" y2="125" stroke="white" stroke-width="2" opacity="0.6">
+                                    <animate attributeName="y2" values="125;180;125" dur="2s" repeatCount="indefinite"/>
+                                </line>
+                                <line x1="250" y1="125" x2="280" y2="125" stroke="white" stroke-width="2" opacity="0.6">
+                                    <animate attributeName="x2" values="250;320;250" dur="2s" repeatCount="indefinite"/>
+                                </line>
+                            </g>
+                            
+                            <!-- Code Block 1 Path -->
+                            <path d="M 140 150 L 80 200" stroke="#1e3c72" stroke-width="2" marker-end="url(#arrowblue)">
+                                <animate attributeName="stroke-dasharray" values="0,100;100,0" dur="1.5s" repeatCount="indefinite"/>
+                            </path>
+                            <rect x="20" y="200" width="120" height="35" fill="#ffd43b" rx="5">
+                                <animate attributeName="y" values="200;195;200" dur="2s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="80" y="222" text-anchor="middle" font-weight="bold" font-size="11">Code Block 1</text>
+                            
+                            <!-- CRC attachment animation CB1 -->
+                            <path d="M 80 235 L 80 270" stroke="#1e3c72" stroke-width="2" marker-end="url(#arrowblue)"/>
+                            <rect x="35" y="270" width="90" height="30" fill="#ff6b6b" rx="5">
+                                <animate attributeName="opacity" values="0;1;1" dur="1s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="80" y="290" text-anchor="middle" fill="white" font-weight="bold" font-size="10">+24-bit CRC</text>
+                            
+                            <!-- Attaching animation -->
+                            <circle cx="80" cy="285" r="3" fill="white">
+                                <animate attributeName="r" values="3;6;3" dur="1s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="1;0.5;1" dur="1s" repeatCount="indefinite"/>
+                            </circle>
+                            
+                            <rect x="20" y="320" width="120" height="35" fill="#51cf66" rx="5" id="seg-cb1">
+                                <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="80" y="342" text-anchor="middle" fill="white" font-weight="bold" font-size="11">CB1 Final</text>
+                            
+                            <!-- Code Block 2 Path -->
+                            <path d="M 200 150 L 200 200" stroke="#1e3c72" stroke-width="2" marker-end="url(#arrowblue)">
+                                <animate attributeName="stroke-dasharray" values="0,100;100,0" dur="1.5s" begin="0.3s" repeatCount="indefinite"/>
+                            </path>
+                            <rect x="140" y="200" width="120" height="35" fill="#ffd43b" rx="5">
+                                <animate attributeName="y" values="200;195;200" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="200" y="222" text-anchor="middle" font-weight="bold" font-size="11">Code Block 2</text>
+                            
+                            <!-- CRC attachment animation CB2 -->
+                            <path d="M 200 235 L 200 270" stroke="#1e3c72" stroke-width="2" marker-end="url(#arrowblue)"/>
+                            <rect x="155" y="270" width="90" height="30" fill="#ff6b6b" rx="5">
+                                <animate attributeName="opacity" values="0;1;1" dur="1s" begin="0.3s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="200" y="290" text-anchor="middle" fill="white" font-weight="bold" font-size="10">+24-bit CRC</text>
+                            
+                            <circle cx="200" cy="285" r="3" fill="white">
+                                <animate attributeName="r" values="3;6;3" dur="1s" begin="0.3s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="1;0.5;1" dur="1s" begin="0.3s" repeatCount="indefinite"/>
+                            </circle>
+                            
+                            <rect x="140" y="320" width="120" height="35" fill="#51cf66" rx="5" id="seg-cb2">
+                                <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="0.3s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="200" y="342" text-anchor="middle" fill="white" font-weight="bold" font-size="11">CB2 Final</text>
+                            
+                            <!-- Code Block 3 Path -->
+                            <path d="M 260 150 L 320 200" stroke="#1e3c72" stroke-width="2" marker-end="url(#arrowblue)">
+                                <animate attributeName="stroke-dasharray" values="0,100;100,0" dur="1.5s" begin="0.6s" repeatCount="indefinite"/>
+                            </path>
+                            <rect x="260" y="200" width="120" height="35" fill="#ffd43b" rx="5">
+                                <animate attributeName="y" values="200;195;200" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="320" y="222" text-anchor="middle" font-weight="bold" font-size="11">Code Block 3</text>
+                            
+                            <!-- CRC attachment animation CB3 -->
+                            <path d="M 320 235 L 320 270" stroke="#1e3c72" stroke-width="2" marker-end="url(#arrowblue)"/>
+                            <rect x="275" y="270" width="90" height="30" fill="#ff6b6b" rx="5">
+                                <animate attributeName="opacity" values="0;1;1" dur="1s" begin="0.6s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="320" y="290" text-anchor="middle" fill="white" font-weight="bold" font-size="10">+24-bit CRC</text>
+                            
+                            <circle cx="320" cy="285" r="3" fill="white">
+                                <animate attributeName="r" values="3;6;3" dur="1s" begin="0.6s" repeatCount="indefinite"/>
+                                <animate attributeName="opacity" values="1;0.5;1" dur="1s" begin="0.6s" repeatCount="indefinite"/>
+                            </circle>
+                            
+                            <rect x="260" y="320" width="120" height="35" fill="#51cf66" rx="5" id="seg-cb3">
+                                <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+                            </rect>
+                            <text x="320" y="342" text-anchor="middle" fill="white" font-weight="bold" font-size="11">CB3 Final</text>
+                            
+                            <!-- Legend -->
+                            <g id="legend" transform="translate(100, 380)">
+                                <rect x="0" y="0" width="200" height="60" fill="white" stroke="#ddd" stroke-width="1" rx="5" opacity="0.9"/>
+                                <rect x="10" y="10" width="15" height="10" fill="#ffd43b" rx="2"/>
+                                <text x="30" y="18" font-size="9" fill="#333">Segmented Block</text>
+                                
+                                <rect x="10" y="25" width="15" height="10" fill="#ff6b6b" rx="2"/>
+                                <text x="30" y="33" font-size="9" fill="#333">CRC Attachment</text>
+                                
+                                <rect x="10" y="40" width="15" height="10" fill="#51cf66" rx="2"/>
+                                <text x="30" y="48" font-size="9" fill="#333">Ready for Encoding</text>
+                            </g>
+                            
+                            <!-- Status indicator -->
+                            <text x="200" y="470" text-anchor="middle" font-size="11" fill="#51cf66" font-weight="bold">
+                                ✓ Segmentation Complete
+                                <animate attributeName="opacity" values="0;1;1;1;0" dur="4s" repeatCount="indefinite"/>
+                            </text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="panel">
+                    <h3>💻 Source Code</h3>
+                    <div class="code-panel">
+<pre><span class="comment">// Code Block Segmentation</span>
+<span class="keyword">#include</span> <span class="string">&lt;iostream&gt;</span>
+<span class="keyword">#include</span> <span class="string">&lt;vector&gt;</span>
+<span class="keyword">using namespace</span> std;
+
+<span class="comment">// Attach 24-bit CRC</span>
+vector&lt;<span class="keyword">int</span>&gt; <span class="function">attachCRC24</span>(vector&lt;<span class="keyword">int</span>&gt; block) {
+    vector&lt;<span class="keyword">int</span>&gt; crc(<span class="number">24</span>, <span class="number">1</span>); <span class="comment">// dummy CRC</span>
+    block.insert(block.end(), crc.begin(), crc.end());
+    <span class="keyword">return</span> block;
+}
+
+<span class="keyword">int</span> <span class="function">main</span>() {
+    <span class="keyword">int</span> tbSize;
+    cout &lt;&lt; <span class="string">"Enter TB size (bits): "</span>;
+    cin &gt;&gt; tbSize;
+    
+    <span class="keyword">int</span> maxBlockSize = <span class="number">4000</span>;
+    <span class="keyword">int</span> numBlocks;
+    
+    <span class="comment">// Determine number of code blocks</span>
+    <span class="keyword">if</span> (tbSize &lt;= maxBlockSize)
+        numBlocks = <span class="number">1</span>;
+    <span class="keyword">else</span>
+        numBlocks = (tbSize + maxBlockSize - <span class="number">1</span>) 
+                    / maxBlockSize;
+    
+    cout &lt;&lt; <span class="string">"\n--- Segmentation Result ---\n"</span>;
+    cout &lt;&lt; <span class="string">"Total TB size: "</span> &lt;&lt; tbSize &lt;&lt; <span class="string">" bits\n"</span>;
+    cout &lt;&lt; <span class="string">"Num code blocks: "</span> &lt;&lt; numBlocks &lt;&lt; endl;
+    
+    <span class="comment">// Process each block</span>
+    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; numBlocks; i++) {
+        <span class="keyword">int</span> blockSize;
+        <span class="keyword">if</span> (i == numBlocks - <span class="number">1</span>)
+            blockSize = tbSize - (maxBlockSize * i);
+        <span class="keyword">else</span>
+            blockSize = maxBlockSize;
+        
+        vector&lt;<span class="keyword">int</span>&gt; block(blockSize, <span class="number">1</span>);
+        vector&lt;<span class="keyword">int</span>&gt; blockWithCRC = attachCRC24(block);
+        
+        cout &lt;&lt; <span class="string">"\nCode Block "</span> &lt;&lt; i + <span class="number">1</span> &lt;&lt; <span class="string">":\n"</span>;
+        cout &lt;&lt; <span class="string">"Data size: "</span> &lt;&lt; blockSize &lt;&lt; <span class="string">" bits\n"</span>;
+        cout &lt;&lt; <span class="string">"After CRC: "</span> &lt;&lt; blockWithCRC.size() 
+             &lt;&lt; <span class="string">" bits\n"</span>;
+    }
+    
+    <span class="keyword">return</span> <span class="number">0</span>;
+}</pre>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <h3>📤 Output</h3>
+                    <div class="output-panel" id="seg-output-panel">
+                        <div class="output-section">
+                            <h4>Input</h4>
+                            <div>TB Size: <span id="seg-out-size">9000</span> bits</div>
+                            <div>Base Graph: <span id="seg-out-bg">BG1</span></div>
+                        </div>
+                        <div class="output-section">
+                            <h4>Segmentation Result</h4>
+                            <div>Number of Code Blocks: <span id="seg-out-num">3</span></div>
+                        </div>
+                        <div class="output-section" id="seg-blocks-output">
+                            <h4>Code Blocks</h4>
+                            <!-- Will be filled dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchModule(index) {
+            const modules = document.querySelectorAll('.module-container');
+            const buttons = document.querySelectorAll('.tab-button');
+            
+            modules.forEach((m, i) => {
+                m.classList.toggle('active', i === index);
+            });
+            
+            buttons.forEach((b, i) => {
+                b.classList.toggle('active', i === index);
+            });
+        }
+
+        // MODULE 1: CRC Attachment
+        function updateCRCModule() {
+            const tbSize = parseInt(document.getElementById('crc-tb-size').value);
+            const crcType = tbSize > 3824 ? 24 : 16;
+            
+            document.getElementById('crc-type-display').textContent = `CRC Type: ${crcType}-bit`;
+            document.getElementById('crc-out-size').textContent = tbSize;
+            document.getElementById('crc-out-type').textContent = crcType;
+            
+            // Animate
+            document.getElementById('crc-generator').classList.add('pulse');
+            setTimeout(() => {
+                document.getElementById('crc-generator').classList.remove('pulse');
+            }, 1500);
+        }
+
+        // MODULE 2: LDPC Base Graph Selection
+        function updateLDPCModule() {
+            const tbSize = parseInt(document.getElementById('ldpc-tb-size').value);
+            const codeRate = parseFloat(document.getElementById('ldpc-rate').value);
+            
+            document.getElementById('ldpc-tb-value').textContent = tbSize;
+            document.getElementById('ldpc-rate-value').textContent = codeRate.toFixed(2);
+            
+            // Selection logic
+            let baseGraph;
+            let logic = '';
+            
+            if (codeRate <= 0.25) {
+                baseGraph = 'BG2';
+                logic = '✓ Coding rate ≤ 0.25<br>→ BG2 selected';
+            } else if (tbSize <= 292) {
+                baseGraph = 'BG2';
+                logic = '✓ TB size ≤ 292<br>→ BG2 selected';
+            } else if (tbSize <= 3824 && codeRate <= 0.67) {
+                baseGraph = 'BG2';
+                logic = '✓ TB size ≤ 3824<br>✓ Coding rate ≤ 0.67<br>→ BG2 selected';
+            } else {
+                baseGraph = 'BG1';
+                logic = '✗ None of BG2 conditions met<br>→ BG1 selected';
+            }
+            
+            document.getElementById('ldpc-result').textContent = `Selected Base Graph: ${baseGraph}`;
+            document.getElementById('ldpc-out-size').textContent = tbSize;
+            document.getElementById('ldpc-out-rate').textContent = codeRate.toFixed(2);
+            document.getElementById('ldpc-out-result').textContent = `Selected Base Graph: ${baseGraph}`;
+            document.getElementById('ldpc-logic').innerHTML = logic;
+            
+            // Update colors
+            const bg1Path = document.getElementById('ldpc-path-bg1');
+            const bg2Path = document.getElementById('ldpc-path-bg2');
+            const bg1Box = document.getElementById('ldpc-bg1');
+            const bg2Box = document.getElementById('ldpc-bg2');
+            
+            if (baseGraph === 'BG1') {
+                bg1Path.style.strokeWidth = '5';
+                bg2Path.style.strokeWidth = '1';
+                bg1Box.style.opacity = '1';
+                bg2Box.style.opacity = '0.3';
+                document.getElementById('ldpc-result').style.background = 'linear-gradient(135deg, #51cf66 0%, #37b24d 100%)';
+                document.getElementById('ldpc-out-result').style.color = '#51cf66';
+            } else {
+                bg1Path.style.strokeWidth = '1';
+                bg2Path.style.strokeWidth = '5';
+                bg1Box.style.opacity = '0.3';
+                bg2Box.style.opacity = '1';
+                document.getElementById('ldpc-result').style.background = 'linear-gradient(135deg, #ff9f1c 0%, #f59f00 100%)';
+                document.getElementById('ldpc-out-result').style.color = '#ff9f1c';
+            }
+        }
+
+        function toggleLDPCMode(mode) {
+            const buttons = document.querySelectorAll('.mode-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const infoBox = document.getElementById('ldpc-info');
+            if (mode === 'student') {
+                infoBox.innerHTML = `
+                    <h4>Student Mode</h4>
+                    <p><strong>BG1</strong> is used for large blocks or higher coding rates.</p>
+                    <p><strong>BG2</strong> is used for small blocks or low coding rates.</p>
+                `;
+            } else {
+                infoBox.innerHTML = `
+                    <h4>Engineer Mode</h4>
+                    <p>Base graph selection follows <strong>3GPP TS 38.212</strong> rules:</p>
+                    <p><strong>BG2</strong> is selected when:</p>
+                    <ul style="margin-left: 20px; margin-top: 5px;">
+                        <li>Coding rate ≤ 0.25, OR</li>
+                        <li>TB size ≤ 292 bits, OR</li>
+                        <li>TB size ≤ 3824 bits AND coding rate ≤ 0.67</li>
+                    </ul>
+                    <p style="margin-top: 10px;">Otherwise, <strong>BG1</strong> is selected.</p>
+                `;
+            }
+        }
+
+        // MODULE 3: Code Block Segmentation
+        function updateSegModule() {
+            const tbSize = parseInt(document.getElementById('seg-tb-size').value);
+            const baseGraph = document.getElementById('seg-base-graph').value;
+            const maxBlockSize = 4000;
+            
+            let numBlocks;
+            if (tbSize <= maxBlockSize) {
+                numBlocks = 1;
+            } else {
+                numBlocks = Math.ceil(tbSize / maxBlockSize);
+            }
+            
+            document.getElementById('seg-tb-value').textContent = tbSize;
+            document.getElementById('seg-num-blocks').textContent = numBlocks;
+            document.getElementById('seg-out-size').textContent = tbSize;
+            document.getElementById('seg-out-bg').textContent = baseGraph;
+            document.getElementById('seg-out-num').textContent = numBlocks;
+            
+            // Generate blocks output
+            let blocksHTML = '<h4>Code Blocks</h4>';
+            for (let i = 0; i < numBlocks; i++) {
+                let blockSize;
+                if (i === numBlocks - 1) {
+                    blockSize = tbSize - (maxBlockSize * i);
+                } else {
+                    blockSize = maxBlockSize;
+                }
+                
+                blocksHTML += `
+                    <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 5px; border-left: 3px solid #ffd43b;">
+                        <strong>Code Block ${i + 1}:</strong><br>
+                        Data size: ${blockSize} bits<br>
+                        After CRC: ${blockSize + 24} bits
+                    </div>
+                `;
+            }
+            
+            document.getElementById('seg-blocks-output').innerHTML = blocksHTML;
+            
+            // Show/hide blocks in animation
+            document.getElementById('seg-cb1').style.opacity = numBlocks >= 1 ? '1' : '0.2';
+            document.getElementById('seg-cb2').style.opacity = numBlocks >= 2 ? '1' : '0.2';
+            document.getElementById('seg-cb3').style.opacity = numBlocks >= 3 ? '1' : '0.2';
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            updateCRCModule();
+            updateLDPCModule();
+            updateSegModule();
+        };
+    </script>
+</body>
+</html>

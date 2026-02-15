@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G NR | CCE-to-REG Mapping Presentation</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #020617;
+            --card-bg: #0f172a;
+            --primary-glow: #38bdf8;
+            --secondary-glow: #818cf8;
+            --accent-color: #fb7185;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --code-bg: #010409;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero Animation Background */
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(circle at 2px 2px, rgba(56, 189, 248, 0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        /* Header Section */
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem;
+            background: linear-gradient(to right, var(--primary-glow), var(--secondary-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Info Cards */
+        .description-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .info-card:hover { transform: translateY(-5px); border-color: var(--primary-glow); }
+
+        .info-card p {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: var(--text-dim);
+            text-align: justify;
+        }
+
+        .info-card strong { color: var(--primary-glow); }
+
+        /* Architecture Visualizer */
+        .arch-section {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .arch-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding: 40px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .arch-node {
+            width: 150px;
+            padding: 20px;
+            background: #1e293b;
+            border: 2px solid var(--secondary-glow);
+            border-radius: 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .arch-node i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--primary-glow);
+        }
+
+        .connector {
+            flex-grow: 1;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary-glow), var(--secondary-glow));
+            position: relative;
+            margin: 0 10px;
+        }
+
+        .connector::after {
+            content: '➤';
+            position: absolute;
+            right: 0;
+            top: -10px;
+            color: var(--secondary-glow);
+            animation: moveArrow 2s infinite linear;
+        }
+
+        /* Code and Terminal Section */
+        .code-section {
+            background: var(--code-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #30363d;
+            margin-bottom: 40px;
+        }
+
+        .code-header {
+            background: #161b22;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
+        }
+
+        .code-dots span {
+            height: 12px; width: 12px; border-radius: 50%; display: inline-block; margin-right: 8px;
+        }
+
+        pre {
+            padding: 25px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            color: #e6edf3;
+            overflow-x: auto;
+        }
+
+        .keyword { color: #ff7b72; }
+        .comment { color: #8b949e; }
+        .function { color: #d2a8ff; }
+        .number { color: #79c0ff; }
+
+        /* Terminal Output */
+        .terminal {
+            background: #000;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            border-left: 4px solid var(--accent-color);
+            margin-top: 20px;
+            box-shadow: inset 0 0 10px rgba(251, 113, 133, 0.2);
+        }
+
+        .terminal-header { color: var(--accent-color); margin-bottom: 10px; font-weight: bold; }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes moveArrow {
+            from { left: 0%; }
+            to { left: 100%; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .arch-container { flex-direction: column; gap: 30px; }
+            .connector { width: 2px; height: 50px; }
+            .connector::after { transform: rotate(90deg); top: 100%; right: -8px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="grid-bg"></div>
+
+    <div class="container">
+        <header>
+            <h1>CCE-to-REG Mapping</h1>
+            <p>Physical Downlink Control Channel (PDCCH) Resource Allocation</p>
+        </header>
+
+        <!-- Description Section -->
+        <section class="description-grid">
+            <div class="info-card">
+                <p>
+                    <strong>Structural Definition:</strong> In 5G NR, the <strong>Control Channel Element (CCE)</strong> is the fundamental unit used to carry Downlink Control Information (DCI). Each CCE consists of exactly <strong>6 Resource Element Groups (REGs)</strong>. An REG is defined as one Resource Block (12 subcarriers) in one OFDM symbol. This structured hierarchy allows the gNodeB to scale resources based on the Aggregation Level (1, 2, 4, 8, or 16 CCEs) required for robust transmission.
+                </p>
+                <p>
+                    <strong>Interleaving Mechanism:</strong> To combat frequency-selective fading and provide frequency diversity, 5G NR employs <strong>Interleaved CCE-to-REG mapping</strong>. This process groups REGs into "bundles" (size $L$) and passes them through a block interleaver. The mapping is governed by parameters such as the bundle size ($L$), the interleaver rows ($R$), and a cyclic shift ($n_{shift}$), ensuring that the control information is spread efficiently across the <strong>Control Resource Set (CORESET)</strong>.
+                </p>
+                <p>
+                    <strong>Operational Flexibility:</strong> The mapping can be either <em>non-interleaved</em> (localized) or <em>interleaved</em> (distributed). Non-interleaved mapping is simpler, where CCEs map to contiguous REG bundles, suitable for frequency-selective scheduling. Conversely, interleaved mapping is essential for high-mobility scenarios where frequency diversity is paramount to ensure the User Equipment (UE) can reliably decode the PDCCH in various channel conditions.
+                </p>
+            </div>
+        </section>
+
+        <!-- Architecture Visual -->
+        <section class="arch-section">
+            <h2 style="font-family: 'Orbitron'; color: var(--primary-glow);">Mapping Architecture</h2>
+            <div class="arch-container">
+                <div class="arch-node">
+                    <i class="fas fa-microchip"></i>
+                    <h3>CCE</h3>
+                    <small>Control Channel Element</small>
+                </div>
+                <div class="connector"></div>
+                <div class="arch-node">
+                    <i class="fas fa-layer-group"></i>
+                    <h3>REG Bundle</h3>
+                    <small>Size L (2, 3, or 6)</small>
+                </div>
+                <div class="connector"></div>
+                <div class="arch-node">
+                    <i class="fas fa-random"></i>
+                    <h3>Interleaver</h3>
+                    <small>Rows (R) & Shift</small>
+                </div>
+                <div class="connector"></div>
+                <div class="arch-node">
+                    <i class="fas fa-border-all"></i>
+                    <h3>REG</h3>
+                    <small>CORESET Resource</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- Code Block -->
+        <h2 style="font-family: 'Orbitron'; color: var(--primary-glow); margin-bottom: 20px;">
+            <i class="fas fa-code"></i> C++ Implementation
+        </h2>
+        <div class="code-section">
+            <div class="code-header">
+                <div class="code-dots">
+                    <span style="background: #ff5f56;"></span>
+                    <span style="background: #ffbd2e;"></span>
+                    <span style="background: #27c93f;"></span>
+                </div>
+                <span style="color: var(--text-dim); font-size: 0.8rem;">cce_reg_mapping.cpp</span>
+            </div>
+<pre>
+<span class="keyword">#include</span> <span class="number">&lt;iostream&gt;</span>
+<span class="keyword">#include</span> <span class="number">&lt;vector&gt;</span>
+
+<span class="comment">// 5G NR CCE-to-REG Mapping (TS 38.211 §7.3.2.2)</span>
+<span class="keyword">void</span> <span class="function">cceToRegMapping</span>(<span class="keyword">int</span> N_reg, <span class="keyword">int</span> L, <span class="keyword">int</span> R, <span class="keyword">int</span> n_shift) {
+    <span class="keyword">int</span> N_bundle = N_reg / L;
+    <span class="keyword">int</span> C = N_bundle / R;
+    <span class="keyword">int</span> REGS_PER_CCE = <span class="number">6</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">int</span> cce = <span class="number">0</span>; cce < <span class="number">2</span>; cce++) { <span class="comment">// Showing first 2 CCEs</span>
+        <span class="keyword">std::cout</span> << <span class="string">"CCE "</span> << cce << <span class="string">" → REGs: "</span>;
+        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j < REGS_PER_CCE / L; j++) {
+            <span class="keyword">int</span> bundle_idx = (cce * (REGS_PER_CCE / L)) + j;
+            <span class="comment">// Interleaver function: f(j) = (rC + c + n_shift) mod N_bundle</span>
+            <span class="keyword">int</span> r = bundle_idx % R;
+            <span class="keyword">int</span> c = bundle_idx / R;
+            <span class="keyword">int</span> interleaved_bundle = (r * C + c + n_shift) % N_bundle;
+            
+            <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">0</span>; k < L; k++)
+                <span class="keyword">std::cout</span> << (interleaved_bundle * L + k) << <span class="string">" "</span>;
+        }
+        <span class="keyword">std::cout</span> << <span class="string">"\n"</span>;
+    }
+}
+
+<span class="keyword">int</span> <span class="function">main</span>() {
+    <span class="function">cceToRegMapping</span>(<span class="number">48, 2, 3, 1</span>);
+    <span class="keyword">return</span> <span class="number">0</span>;
+}
+</pre>
+        </div>
+
+        <!-- Terminal Output -->
+        <div class="terminal">
+            <div class="terminal-header"><i class="fas fa-terminal"></i> Execution Output</div>
+            <div style="color: #fff; font-size: 0.9rem;">
+                CCE-to-REG Mapping (Interleaved)<br>
+                =================================<br>
+                <span style="color: var(--primary-glow);">CCE 0 → REGs: 2 3 18 19 34 35 4 5 20 21 36 37</span><br>
+                <span style="color: var(--primary-glow);">CCE 1 → REGs: 6 7 22 23 38 39 8 9 24 25 40 41</span><br>
+                <span style="color: var(--text-dim);">... (CCE 2 to 7 follow similar interleaved pattern)</span><br><br>
+                <small style="color: var(--accent-color);">Mapping Parameters: N_reg=48, L=2, R=3, n_shift=1</small>
+            </div>
+        </div>
+
+        <footer style="text-align: center; margin-top: 60px; color: var(--text-dim); font-size: 0.8rem;">
+            3GPP TS 38.211 Section 7.3.2.2 | 5G New Radio Physical Layer Standards
+        </footer>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5G gNodeB Architecture - Interactive Teaching Tool</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --cu-cp-color: #3498db;
+            --cu-up-color: #2ecc71;
+            --du-color: #9b59b6;
+            --ru-color: #e67e22;
+            --ue-color: #34495e;
+            --core-color: #e74c3c;
+            --text-main: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-main);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Watermark Styling */
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.2);
+            font-size: 1.2rem;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Architecture Container */
+        .arch-container {
+            position: relative;
+            width: 1000px;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 20px;
+            border: 2px solid #ddd;
+        }
+
+        /* Block Styles */
+        .block {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            color: white;
+            cursor: help;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            z-index: 2;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .block:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+        }
+
+        .block i {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        /* Specific Blocks */
+        .ue { background: var(--ue-color); width: 100px; }
+        .gnodeb-main {
+            border: 3px dashed #bdc3c7;
+            padding: 40px 20px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            background: #fafafa;
+        }
+        .cu-container { display: flex; gap: 20px; }
+        .cu-cp { background: var(--cu-cp-color); width: 140px; }
+        .cu-up { background: var(--cu-up-color); width: 140px; }
+        .du { background: var(--du-color); width: 300px; }
+        .ru { background: var(--ru-color); width: 300px; }
+        .core-box { background: var(--core-color); width: 120px; }
+
+        /* Connections (SVG) */
+        .svg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .wire {
+            fill: none;
+            stroke: #bdc3c7;
+            stroke-width: 3;
+            stroke-dasharray: 10;
+        }
+
+        /* Signal Animation */
+        .signal {
+            fill: #f1c40f;
+            filter: drop-shadow(0 0 5px #f1c40f);
+        }
+
+        /* Hover Info Box */
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: -250px;
+            width: 220px;
+            background: white;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+            display: none;
+            animation: fadeIn 0.4s;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Theory Content Section */
+        .theory-section {
+            max-width: 1000px;
+            margin-top: 40px;
+            line-height: 1.6;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .theory-section h2 { color: var(--cu-cp-color); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Interactive 5G gNodeB Architecture</h1>
+        <p>Hover over blocks to learn about their functions in the 5G ecosystem.</p>
+    </div>
+
+    <div class="arch-container">
+        <!-- SVG Connections -->
+        <svg class="svg-overlay">
+            <!-- UE to RU -->
+            <path id="path1" class="wire" d="M120 300 L350 480" />
+            <!-- RU to DU -->
+            <path id="path2" class="wire" d="M500 450 L500 340" />
+            <!-- DU to CU -->
+            <path id="path3" class="wire" d="M500 280 L500 200" />
+            <!-- CU to Core -->
+            <path id="path4" class="wire" d="M650 150 L850 300" />
+
+            <!-- Animated Signal Circles -->
+            <circle class="signal" r="6">
+                <animateMotion dur="3s" repeatCount="indefinite">
+                    <mpath href="#path1"/>
+                </animateMotion>
+            </circle>
+            <circle class="signal" r="6">
+                <animateMotion dur="2s" repeatCount="indefinite">
+                    <mpath href="#path2"/>
+                </animateMotion>
+            </circle>
+            <circle class="signal" r="6">
+                <animateMotion dur="2.5s" repeatCount="indefinite">
+                    <mpath href="#path3"/>
+                </animateMotion>
+            </circle>
+        </svg>
+
+        <!-- UE Block -->
+        <div class="block ue" onmouseover="showInfo('ue')" onmouseout="hideInfo()">
+            <i class="fas fa-mobile-alt"></i>
+            UE (User Equipment)
+        </div>
+
+        <!-- gNodeB Internal -->
+        <div class="gnodeb-main">
+            <div class="cu-container">
+                <div class="block cu-cp" onmouseover="showInfo('cucp')" onmouseout="hideInfo()">
+                    <i class="fas fa-microchip"></i>
+                    CU-CP<br><small>(Control Plane)</small>
+                </div>
+                <div class="block cu-up" onmouseover="showInfo('cuup')" onmouseout="hideInfo()">
+                    <i class="fas fa-exchange-alt"></i>
+                    CU-UP<br><small>(User Plane)</small>
+                </div>
+            </div>
+
+            <div class="block du" onmouseover="showInfo('du')" onmouseout="hideInfo()">
+                <i class="fas fa-server"></i>
+                DU (Distributed Unit)
+            </div>
+
+            <div class="block ru" onmouseover="showInfo('ru')" onmouseout="hideInfo()">
+                <i class="fas fa-broadcast-tower"></i>
+                RU (Radio Unit)
+            </div>
+        </div>
+
+        <!-- Core Network Block -->
+        <div class="block core-box" onmouseover="showInfo('core')" onmouseout="hideInfo()">
+            <i class="fas fa-network-wired"></i>
+            5G Core<br>(AMF/UPF)
+        </div>
+
+        <!-- Info Panel for Hover -->
+        <div id="infoPanel" class="info-panel">
+            <h4 id="infoTitle">Block Info</h4>
+            <p id="infoText">Details will appear here...</p>
+        </div>
+    </div>
+
+    <!-- Theory Section -->
+    <div class="theory-section">
+        <h2>Understanding gNodeB Disaggregation</h2>
+        <p>In 5G NR (New Radio), the base station, known as <b>gNodeB</b>, is broken down into three functional entities to allow for better flexibility, scalability, and virtualization.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h3 style="color:var(--cu-cp-color)">1. Central Unit (CU)</h3>
+                <p>The CU is a logical node that includes the gNodeB functions such as transfer of user data, mobility control, and session management. It is further split into CU-CP (Control) and CU-UP (User) for better resource management.</p>
+            </div>
+            <div>
+                <h3 style="color:var(--du-color)">2. Distributed Unit (DU)</h3>
+                <p>The DU is located closer to the RU. It handles the "time-critical" functions like MAC (Medium Access Control), RLC (Radio Link Control), and high-level Physical layer tasks. One CU can control multiple DUs.</p>
+            </div>
+            <div>
+                <h3 style="color:var(--ru-color)">3. Radio Unit (RU)</h3>
+                <p>The RU is the physical hardware containing the antennas. It handles the Low-PHY layer functions, digital-to-analog conversion, and beamforming to transmit signals to the User Equipment (UE).</p>
+            </div>
+            <div>
+                <h3 style="color:var(--core-color)">4. Interfaces</h3>
+                <ul>
+                    <li><b>F1 Interface:</b> Connects CU and DU.</li>
+                    <li><b>Uu Interface:</b> The radio link between RU and UE.</li>
+                    <li><b>NG Interface:</b> Connects gNodeB to the 5G Core.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="watermark">55984 - Vikas Srivastava</div>
+
+    <script>
+        const theoryData = {
+            ue: {
+                title: "User Equipment",
+                text: "Any device used directly by an end-user to communicate. It connects to the gNodeB via the Uu radio interface."
+            },
+            cucp: {
+                title: "CU - Control Plane",
+                text: "Handles RRC (Radio Resource Control) and PDCP-C protocols. It manages signaling, mobility, and security."
+            },
+            cuup: {
+                title: "CU - User Plane",
+                text: "Handles the SDAP (Service Data Adaptation Protocol) and PDCP-U. It processes the actual user data (Internet traffic)."
+            },
+            du: {
+                title: "Distributed Unit",
+                text: "Manages RLC, MAC, and High-PHY layers. It handles scheduling and retransmission (ARQ)."
+            },
+            ru: {
+                title: "Radio Unit",
+                text: "The physical antenna unit. Performs Beamforming, Fast Fourier Transform (FFT), and RF processing."
+            },
+            core: {
+                title: "5G Core Network",
+                text: "The brain of the network. Includes AMF (for signaling) and UPF (for data routing to the internet)."
+            }
+        };
+
+        function showInfo(type) {
+            const panel = document.getElementById('infoPanel');
+            const title = document.getElementById('infoTitle');
+            const text = document.getElementById('infoText');
+            
+            title.innerText = theoryData[type].title;
+            text.innerText = theoryData[type].text;
+            panel.style.display = 'block';
+            
+            // Highlight the border of the panel based on the block color
+            const colors = { ue: '#34495e', cucp: '#3498db', cuup: '#2ecc71', du: '#9b59b6', ru: '#e67e22', core: '#e74c3c' };
+            panel.style.borderLeftColor = colors[type];
+        }
+
+        function hideInfo() {
+            document.getElementById('infoPanel').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

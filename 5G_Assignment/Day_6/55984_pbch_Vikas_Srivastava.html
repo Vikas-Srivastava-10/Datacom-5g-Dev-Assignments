@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PBCH Location in 5G NR Frame Structure</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #0a0e27;
+            --bg-card: #151b3d;
+            --purple-frame: #a855f7;
+            --cyan-num: #06b6d4;
+            --magenta-rb: #ec4899;
+            --teal-re: #14b8a6;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: #1e293b;
+            --accent-glow: rgba(168, 85, 247, 0.25);
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --pbch-color: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f4d 100%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.8;
+            padding-bottom: 50px;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+            padding: 40px 40px;
+            border-bottom: 2px solid var(--purple-frame);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .logo { 
+            font-weight: 800; 
+            font-size: 2.2rem; 
+            background: linear-gradient(135deg, var(--purple-frame) 0%, var(--pbch-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1.5px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo span { 
+            background: linear-gradient(135deg, #fff 0%, var(--text-dim) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 400;
+        }
+        
+        .header-desc { 
+            color: var(--text-dim); 
+            font-size: 1rem; 
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container { max-width: 1300px; margin: 0 auto; padding: 25px; }
+
+        .grid-layout { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 35px; 
+            align-items: start;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 900px) { 
+            .grid-layout { grid-template-columns: 1fr; } 
+        }
+
+        .info-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(21, 27, 61, 0.8) 100%);
+            padding: 35px;
+            border-radius: 25px;
+            border: 1px solid var(--border);
+            height: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-pbch {
+            background: linear-gradient(135deg, var(--pbch-color) 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, var(--pbch-color) 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            margin: 25px 0 15px 0;
+            color: var(--pbch-color);
+            font-weight: 700;
+        }
+
+        .highlight {
+            padding: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid var(--pbch-color);
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .summary {
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            border: 2px solid;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        /* Frame Structure Visualization */
+        .frame-container {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid var(--pbch-color);
+            margin: 20px 0;
+        }
+
+        .frame-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .frame-label {
+            min-width: 80px;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .subframe {
+            flex: 1;
+            height: 40px;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(168, 85, 247, 0.05) 100%);
+            border: 1px solid var(--purple-frame);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .slot {
+            flex: 1;
+            height: 40px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.05) 100%);
+            border: 1px solid var(--cyan-num);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .slot-with-pbch {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(16, 185, 129, 0.2) 100%);
+            border: 2px solid var(--pbch-color);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        /* Resource Grid */
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(14, 1fr);
+            gap: 3px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .re-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .re-cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .re-pss {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .re-sss {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .re-pbch {
+            background: linear-gradient(135deg, var(--pbch-color) 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        .re-dmrs {
+            background: linear-gradient(135deg, var(--cyan-num) 0%, #0891b2 100%);
+            color: white;
+        }
+
+        .re-empty {
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--pbch-color) 0%, #059669 100%);
+            color: white;
+            font-weight: 700;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 60px;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        footer p:first-child {
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--purple-frame) 0%, var(--pbch-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .spec-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid var(--pbch-color);
+            margin: 15px 0;
+        }
+
+        .spec-box h4 {
+            color: var(--pbch-color);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .spec-box ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .spec-box li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .spec-box li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--pbch-color);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">PBCH <span>Location in 5G NR</span></div>
+    <p class="header-desc">Physical Broadcast Channel Mapping in Frame Structure</p>
+</header>
+
+<div class="container">
+    <div class="grid-layout">
+        <!-- Left Column: PBCH Information -->
+        <div class="info-card">
+            <span class="tag tag-pbch">📡 BROADCAST CHANNEL</span>
+            <h2>PBCH Overview</h2>
+            
+            <p style="color: var(--text-dim); margin-bottom: 20px;">
+                The <b style="color: var(--pbch-color);">Physical Broadcast Channel (PBCH)</b> carries the Master Information Block (MIB) which contains essential system information needed for initial access to the 5G network.
+            </p>
+
+            <h3>Key Characteristics</h3>
+            <div class="spec-box">
+                <h4>📊 Technical Specifications</h4>
+                <ul>
+                    <li><b>Payload:</b> MIB (24 bits)</li>
+                    <li><b>Repetition:</b> Every 80 ms (8 frames)</li>
+                    <li><b>TTI:</b> 80 ms</li>
+                    <li><b>Modulation:</b> QPSK</li>
+                    <li><b>Coding:</b> Polar coding</li>
+                </ul>
+            </div>
+
+            <div class="spec-box">
+                <h4>📍 Location Details</h4>
+                <ul>
+                    <li><b>Time Domain:</b> Symbols 1, 2, 3 of Slot 0</li>
+                    <li><b>Frequency Domain:</b> 240 subcarriers (20 RBs)</li>
+                    <li><b>Position:</b> Centered around DC (0 Hz)</li>
+                    <li><b>Frame Position:</b> Subframe 0 of every frame</li>
+                </ul>
+            </div>
+
+            <h3>MIB Content</h3>
+            <div class="highlight">
+                <b style="color: var(--pbch-color);">Master Information Block includes:</b><br><br>
+                • System Frame Number (SFN) - 6 bits<br>
+                • Subcarrier spacing for common channels<br>
+                • CORESET configuration<br>
+                • PDCCH configuration<br>
+                • Cell barred indication<br>
+                • Intra-frequency reselection info
+            </div>
+
+            <div class="summary" style="border-color: var(--pbch-color); background: rgba(16, 185, 129, 0.1);">
+                <b>🎯 Core Function:</b> PBCH is the first channel a UE decodes after cell search. It provides critical information needed to access other system information and establish connection with the network.
+            </div>
+        </div>
+
+        <!-- Right Column: Frame Structure Visualization -->
+        <div class="info-card" style="border-color: var(--pbch-color);">
+            <span class="tag tag-pbch">🗺️ FRAME MAPPING</span>
+            <h2>PBCH in Frame Structure</h2>
+
+            <div class="frame-container">
+                <h4 style="color: var(--pbch-color); margin-bottom: 15px; text-align: center;">
+                    Radio Frame (10 ms)
+                </h4>
+                
+                <div class="frame-row">
+                    <div class="frame-label">Subframes</div>
+                    <div class="subframe" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(16, 185, 129, 0.1) 100%); border-color: var(--pbch-color);">
+                        SF 0
+                        <div style="position: absolute; top: -25px; font-size: 0.7rem; color: var(--pbch-color);">
+                            ← PBCH here
+                        </div>
+                    </div>
+                    <div class="subframe">SF 1</div>
+                    <div class="subframe">SF 2</div>
+                    <div class="subframe">SF 3</div>
+                    <div class="subframe">SF 4</div>
+                    <div class="subframe">SF 5</div>
+                    <div class="subframe">SF 6</div>
+                    <div class="subframe">SF 7</div>
+                    <div class="subframe">SF 8</div>
+                    <div class="subframe">SF 9</div>
+                </div>
+
+                <h4 style="color: var(--cyan-num); margin: 25px 0 15px 0; text-align: center;">
+                    Subframe 0 - Slot Level View (μ=0, SCS=15kHz)
+                </h4>
+
+                <div class="frame-row">
+                    <div class="frame-label">Slots</div>
+                    <div class="slot slot-with-pbch">
+                        Slot 0
+                        <div style="position: absolute; bottom: -25px; font-size: 0.7rem; color: var(--pbch-color); font-weight: 700;">
+                            PBCH ★
+                        </div>
+                    </div>
+                    <div class="slot">Slot 1</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px;">Resource Grid - PBCH Mapping</h3>
+            <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
+                14 OFDM Symbols × 20 RBs (240 subcarriers) in Slot 0
+            </p>
+
+            <div class="resource-grid" style="grid-template-columns: repeat(14, 1fr); grid-template-rows: repeat(20, 1fr);">
+                <!-- Symbol labels -->
+                <div style="grid-column: 1/-1; display: flex; margin-bottom: 10px; font-size: 0.7rem; color: var(--text-dim);">
+                    <div style="flex: 1; text-align: center;">0</div>
+                    <div style="flex: 1; text-align: center;">1</div>
+                    <div style="flex: 1; text-align: center;">2</div>
+                    <div style="flex: 1; text-align: center;">3</div>
+                    <div style="flex: 1; text-align: center;">4</div>
+                    <div style="flex: 1; text-align: center;">5</div>
+                    <div style="flex: 1; text-align: center;">6</div>
+                    <div style="flex: 1; text-align: center;">7</div>
+                    <div style="flex: 1; text-align: center;">8</div>
+                    <div style="flex: 1; text-align: center;">9</div>
+                    <div style="flex: 1; text-align: center;">10</div>
+                    <div style="flex: 1; text-align: center;">11</div>
+                    <div style="flex: 1; text-align: center;">12</div>
+                    <div style="flex: 1; text-align: center;">13</div>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);"></div>
+                    <span>PSS (Symbol 0)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);"></div>
+                    <span>SSS (Symbol 2)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: linear-gradient(135deg, var(--pbch-color) 0%, #059669 100%);"></div>
+                    <span>PBCH (Symbols 1,2,3)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: linear-gradient(135deg, var(--cyan-num) 0%, #0891b2 100%);"></div>
+                    <span>DMRS for PBCH</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.2);"></div>
+                    <span>Not Used</span>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px;">SS/PBCH Block Structure</h3>
+            <table>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Content</th>
+                    <th>RBs</th>
+                </tr>
+                <tr>
+                    <td><b>0</b></td>
+                    <td>PSS (Primary Sync Signal)</td>
+                    <td>127 subcarriers (center)</td>
+                </tr>
+                <tr>
+                    <td><b>1</b></td>
+                    <td>PBCH + DMRS</td>
+                    <td>240 subcarriers (20 RBs)</td>
+                </tr>
+                <tr>
+                    <td><b>2</b></td>
+                    <td>SSS + PBCH + DMRS</td>
+                    <td>240 subcarriers (20 RBs)</td>
+                </tr>
+                <tr>
+                    <td><b>3</b></td>
+                    <td>PBCH + DMRS</td>
+                    <td>240 subcarriers (20 RBs)</td>
+                </tr>
+            </table>
+
+            <div class="summary" style="border-color: var(--pbch-color); background: rgba(16, 185, 129, 0.1); margin-top: 25px;">
+                <b>⚡ Quick Facts:</b><br>
+                • PBCH appears in every SS/PBCH block<br>
+                • SS/PBCH blocks repeat based on frequency range<br>
+                • FR1 (Sub-6 GHz): Max 8 blocks per 5ms<br>
+                • FR2 (mmWave): Max 64 blocks per 5ms<br>
+                • Always located in Slot 0 of Subframe 0
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Information Section -->
+    <div class="info-card" style="margin-top: 35px; border-color: var(--pbch-color);">
+        <span class="tag tag-pbch">📚 TECHNICAL DETAILS</span>
+        <h2>PBCH Processing Chain</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+            <div class="spec-box">
+                <h4>1️⃣ Encoding</h4>
+                <ul>
+                    <li>Input: 24-bit MIB</li>
+                    <li>CRC attachment: 24 bits</li>
+                    <li>Polar encoding</li>
+                    <li>Rate matching</li>
+                    <li>Output: 864 coded bits</li>
+                </ul>
+            </div>
+
+            <div class="spec-box">
+                <h4>2️⃣ Scrambling</h4>
+                <ul>
+                    <li>Physical cell ID based</li>
+                    <li>Helps with interference</li>
+                    <li>Cell-specific sequence</li>
+                    <li>Improves detection</li>
+                </ul>
+            </div>
+
+            <div class="spec-box">
+                <h4>3️⃣ Modulation</h4>
+                <ul>
+                    <li>QPSK modulation</li>
+                    <li>2 bits per symbol</li>
+                    <li>432 modulated symbols</li>
+                    <li>Robust against errors</li>
+                </ul>
+            </div>
+
+            <div class="spec-box">
+                <h4>4️⃣ Resource Mapping</h4>
+                <ul>
+                    <li>Maps to 3 OFDM symbols</li>
+                    <li>240 subcarriers wide</li>
+                    <li>Includes DMRS</li>
+                    <li>Centered on SSB</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 30px;">PBCH vs LTE PBCH</h3>
+        <table>
+            <tr>
+                <th>Feature</th>
+                <th>5G NR PBCH</th>
+                <th>LTE PBCH</th>
+            </tr>
+            <tr>
+                <td><b>Payload</b></td>
+                <td>24 bits (MIB)</td>
+                <td>24 bits (MIB)</td>
+            </tr>
+            <tr>
+                <td><b>TTI</b></td>
+                <td>80 ms</td>
+                <td>40 ms</td>
+            </tr>
+            <tr>
+                <td><b>Coding</b></td>
+                <td>Polar coding</td>
+                <td>Tail-biting convolutional</td>
+            </tr>
+            <tr>
+                <td><b>Bandwidth</b></td>
+                <td>240 subcarriers (20 RBs)</td>
+                <td>72 subcarriers (6 RBs)</td>
+            </tr>
+            <tr>
+                <td><b>OFDM Symbols</b></td>
+                <td>3 symbols</td>
+                <td>4 symbols</td>
+            </tr>
+            <tr>
+                <td><b>Self-contained</b></td>
+                <td>Yes (with PSS/SSS)</td>
+                <td>No (separate)</td>
+            </tr>
+        </table>
+
+        <div class="highlight" style="margin-top: 25px;">
+            <b style="color: var(--pbch-color);">💡 Why Polar Coding?</b><br><br>
+            5G NR uses Polar codes for PBCH instead of convolutional codes used in LTE. Polar codes provide better performance at short block lengths and have lower complexity for encoding/decoding, making them ideal for broadcast channels.
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>🚀 5G NR PBCH Location Reference</p>
+    <p style="font-size: 0.85rem; margin-top: 10px; color: var(--text-dim);">
+        Physical Broadcast Channel • Frame Structure • Resource Mapping
+    </p>
+</footer>
+
+<script>
+    // Generate resource grid with PBCH pattern
+    const resourceGrid = document.querySelector('.resource-grid');
+    
+    // Create 20 rows (RBs) × 14 columns (symbols)
+    for (let rb = 0; rb < 20; rb++) {
+        for (let symbol = 0; symbol < 14; symbol++) {
+            const cell = document.createElement('div');
+            cell.className = 're-cell';
+            
+            // Determine cell type based on symbol and position
+            if (symbol === 0 && rb >= 6 && rb < 17) {
+                // PSS in symbol 0 (center 127 subcarriers ≈ 11 RBs)
+                cell.className += ' re-pss';
+                cell.title = 'PSS';
+            } else if (symbol === 2 && rb >= 6 && rb < 17) {
+                // SSS in symbol 2 (center)
+                cell.className += ' re-sss';
+                cell.title = 'SSS';
+            } else if ((symbol === 1 || symbol === 2 || symbol === 3) && rb >= 0 && rb < 20) {
+                // PBCH in symbols 1, 2, 3
+                if ((rb + symbol) % 4 === 0) {
+                    // DMRS pattern
+                    cell.className += ' re-dmrs';
+                    cell.title = 'DMRS for PBCH';
+                } else {
+                    cell.className += ' re-pbch';
+                    cell.title = 'PBCH';
+                }
+            } else {
+                // Empty
+                cell.className += ' re-empty';
+            }
+            
+            resourceGrid.appendChild(cell);
+        }
+    }
+</script>
+
+</body>
+</html>
