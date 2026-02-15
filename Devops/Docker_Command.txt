@@ -1,0 +1,52 @@
+docker --version                 # Docker check
+docker pull <image>              # Image download
+docker images                    # Image list
+docker run <image>               # Container start (foreground mode)
+docker run -d <image>            # Container start (DETACHED / background mode)
+docker ps                        # Running containers
+docker ps -a                     # All containers (running + stopped)
+docker stop <container_id>       # Stop container
+docker start <container_id>      # Start container
+docker rm <container_id>         # Remove container
+docker logs <id>                 # Container logs
+docker logs -f <id>              # Live logs
+docker exec -it <id> /bin/bash   # Container ke andar jana
+docker exec -it <id> /bin/sh     # Alternative shell
+docker attach <id>               # Attach to container (rare)
+docker inspect <id>              # Full container details
+docker stats                     # Resource usage
+docker cp hostfile <id>:/path    # Host → Container
+docker cp <id>:/path hostfile    # Container → Host
+docker create nginx              #create a container
+docker run -d nginx              # create + start
+docker pause <id>                # pause
+docker unpause <id>              # unpause
+docker stop <id>                 # stop
+docker start <id>                # start
+docker restart <id>              # restart
+docker rm -f <id>                # remove
+docker run -d --restart=always nginx            # Container crash, Docker restart, system reboot → hamesha restart
+docker run -d --restart=on-failure nginx        # Sirf crash (error exit) pe restart, manual stop pe nahi
+docker run -d --restart=on-failure:5 nginx      # Crash hone par maximum 5 baar restart karega
+docker run -d --restart=unless-stopped nginx    # Crash + reboot pe restart, manual stop ke baad restart nahi
+
+Restart Policy
+| Use case                 | Policy         |
+| ------------------------ | -------------- |
+| Local practice           | no             |
+| Simple production app    | always         |
+| Crash-sensitive app      | on-failure     |
+|  Long-running services   | unless-stopped |
+
+docker inspect -f "{{ .HostConfig.RestartPolicy.Name }}" <id>     ## Container ki restart policy check karna
+
+Docker Networks types (basic)
+| Network    | Use                           |
+| ---------- | ----------------------------- |
+| **bridge** | Default, most common          |
+| host       | Host ke network ko direct use |
+| none       | No networking                 |
+| overlay    | Multi-host (Kubernetes/Swarm) |
+
+docker run -d -p 8080:80 nginx
+
